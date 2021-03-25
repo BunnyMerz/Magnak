@@ -1,20 +1,56 @@
 from PPlay.window import *
 from PPlay.sprite import *
 from player import *
+import random
 
 assets = {
     "hud":'assets/hud/',
     "player":'assets/player/',
     "menu":'assets/menu/',
-    "player":'assets/player/'
+    "player":'assets/player/',
+    'tiles':'assets/tiles/'
+}
+config= {
+    'controlls':{
+        'left':'left',
+        'right':'right',
+        'up':'up',
+        'down':'down',
+        'magic':'z',
+        'strong_magic':'x'
+    }
 }
 
 window = Window(864, 576)
 window = Window(972,648)
 keyboard = window.get_keyboard()
 
-bg = Sprite( assets["menu"] + 'fundo_menu_magnak-0.9.jpg') 
 ## Background diminuido para a janela não ficar muito grande
+bg = Sprite( assets["menu"] + 'fundo_menu_magnak-0.9.jpg')
+
+ground = Sprite(assets['tiles'] + 'ground.png',3)
+amountx = int(window.width/ground.width) + 1
+amounty = int(window.height/ground.height) + 1
+ground = []
+wall = []
+gates = []
+tiles = [ground,wall,gates]
+tilesize = 64
+for y in range(amounty):
+    for x in range(amountx):
+        if x == 6 and y == 0:
+            tile = Sprite(assets['tiles'] + 'gate.png',1)
+            gates.append(tile)
+        elif y == 0 or y == 1: #or y == 0 or x == amountx - 1 or y == amounty - 1:
+            tile = Sprite(assets['tiles'] + 'wall.png',3)
+            wall.append(tile)
+        else:
+            tile = Sprite(assets['tiles'] + 'ground.png',3)
+            ground.append(tile)
+        if random.randint(1,20) == 20:
+            tile.curr_frame = 1
+        tile.x = tilesize * x
+        tile.y = tilesize * y
 
 ## Setting player up, as well as their animations
 player = Player(assets["player"] + 'walking-0.7.png',3)
@@ -46,6 +82,9 @@ while(True):
     player.movement(keyboard,window)
 
     bg.draw()
+    for types in tiles:
+        for tile in types:
+            tile.draw()
     player.draw()
     fire.draw()
     weapon_frame.draw()
