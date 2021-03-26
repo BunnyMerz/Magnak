@@ -7,7 +7,6 @@ assets = {
     "hud":'assets/hud/',
     "player":'assets/player/',
     "menu":'assets/menu/',
-    "player":'assets/player/',
     'tiles':'assets/tiles/'
 }
 config= {
@@ -21,7 +20,7 @@ config= {
     }
 }
 
-window = Window(864, 576)
+# window = Window(864, 576)
 window = Window(972,648)
 keyboard = window.get_keyboard()
 
@@ -55,16 +54,21 @@ for y in range(amounty):
         tile.y = tilesize * y
 
 ## Setting player up, as well as their animations
-player = Player(assets["player"] + 'walking-0.7.png',3)
-player.set_total_duration(600)
-player.initial_frame = 1
+walking = assets["player"] + 'walking_'
+player_animations = [walking + 'down-0.7.png',walking + 'up-0.7.png',walking + 'left-0.7.png',walking + 'right-0.7.png']
+player = Player(player_animations,[3] * 4,[400] * 4,[1] * 4)
 player.x = 400
-player.y = 400
+player.y = 0
 
 weapon_frame = Sprite(assets['hud'] + 'weapon_frame.png')
 weapon_frame.x = 10
 weapon_frame.y = 10
+
+fire = Sprite(assets['hud'] + 'ice.png')
+fire = Sprite(assets['hud'] + 'lightning.png')
 fire = Sprite(assets['hud'] + 'fire.png')
+fire = Sprite(assets['hud'] + 'blank.png')
+
 fire.x = 10
 fire.y = 10
 
