@@ -44,11 +44,13 @@ for y in range(amounty):
         elif y == 0 or y == 1: #or y == 0 or x == amountx - 1 or y == amounty - 1:
             tile = Sprite(assets['tiles'] + 'wall.png',3)
             wall.append(tile)
+            if random.randint(1,20) == 20:
+                tile.curr_frame = 1
         else:
             tile = Sprite(assets['tiles'] + 'ground.png',3)
             ground.append(tile)
-        if random.randint(1,20) == 20:
-            tile.curr_frame = 1
+            if random.randint(1,10) == 10:
+                tile.curr_frame = 1
         tile.x = tilesize * x
         tile.y = tilesize * y
 
