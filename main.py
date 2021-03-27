@@ -56,6 +56,7 @@ for y in range(amounty):
 ## Setting player up, as well as their animations
 walking = assets["player"] + 'walking_'
 player_animations = [walking + 'down-0.7.png',walking + 'up-0.7.png',walking + 'left-0.7.png',walking + 'right-0.7.png']
+player_animations_names = ['walk_down','walk_up','walk_left','walk_right']
 player = Player(player_animations,[3] * 4,[400] * 4,[1] * 4)
 player.x = 400
 player.y = 0

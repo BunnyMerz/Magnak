@@ -2,56 +2,66 @@ from PPlay.sprite import *
 import pygame
 import sys
 
-class Player():
-    def __init__(self, image_files, frames, total_durations, initial_frames):
+class Player(): ## Não herda de spirte já que tem varios sprites dentro dele
+    def __init__(self, image_files, frames, total_durations, initial_frames, animation_names=[]):
+
+        ### Validações
         if len(image_files) > len(frames):
             sys.exit("Missing Player arguments in frames. Expected "+str(len(image_files))+", got "+str(len(frames)))
         if len(image_files) > len(total_durations):
             sys.exit("Missing Player arguments in total_durations. Expected " + str(len(image_files))+", got "+ str(len(total_durations)))
         if len(image_files) > len(initial_frames):
             sys.exit("Missing Player arguments in initial_frames. Expected "+ str(len(image_files)) + ", got",str(len(initial_frames)))
+        
+        ## Infos e permissões
         self.x = 0
         self.y = 0
+        self.can_move = True
+        self.allowed_to_run = True
 
+        ## Ingame status
         self.hp = 20
-        self.magic = 0
+        self.magic = 0 ## Magia que ele está usando no momento. Os números ainda precisam ser definidos
         self.base_speed = 170
         self.speed = self.base_speed
-        self.run = 0.3
+        self.run = 0.3 ## porcentagem a acrescentar á velocidade. (base_speed + base_speed * run)
 
+        ## Animações
+        self.animations_names = animation_names ## Caso queria usar nome ao invés de index
+        self.all_animations = [] ## Sprites
+        self.curr_animation = 0 ## Sprites[x]
 
-        self.all_animations = []
-        self.curr_animation = 0
-
-        print(self.all_animations)
         for x in range(len(image_files)):
             sprite = Sprite(image_files[x],frames[x])
             sprite.set_total_duration(total_durations[x])
             sprite.set_initial_frame(initial_frames[x])
             self.all_animations.append(sprite)
-        print(self.all_animations)
+        ####
 
     
-    def movement(self,keyboard,window,allowed_to_run=True):
+    def movement(self,keyboard,window):
+        if not(self.can_move):
+            return
         moving = False
+        allowed_to_run = self.allowed_to_run
 
         run = keyboard.key_pressed("left_shift")
         if keyboard.key_pressed('right') and not keyboard.key_pressed('left'):
             self.x += (self.speed + (run * self.run * self.speed * allowed_to_run)) * window.delta_time()
             moving = True
-            self.curr_animation = 3
+            self.set_animation(3)
         elif keyboard.key_pressed('left') and not keyboard.key_pressed('right'):
             self.x -= (self.speed + (run * self.run * self.speed * allowed_to_run)) * window.delta_time()
             moving = True
-            self.curr_animation = 2
+            self.set_animation(2)
         if keyboard.key_pressed('down') and not keyboard.key_pressed('up'):
             self.y += (self.speed + (run * self.run * self.speed * allowed_to_run)) * window.delta_time()
             moving = True
-            self.curr_animation = 0
+            self.set_animation(0)
         elif keyboard.key_pressed('up') and not keyboard.key_pressed('down'):
             self.y -= (self.speed + (run * self.run * self.speed * allowed_to_run)) * window.delta_time()
             moving = True
-            self.curr_animation = 1
+            self.set_animation(1)
         
         if not(moving):
             self.all_animations[self.curr_animation].curr_frame = 0
@@ -66,3 +76,15 @@ class Player():
     def update(self):
         sprite = self.all_animations[self.curr_animation]
         sprite.update()
+
+    def set_animation(self,index):
+        sprite = self.all_animations[self.curr_animation]
+        sprite.curr_frame = sprite.initial_frame
+        self.curr_animation = index
+    
+    def name_to_index(self,name):
+        for x in range(len(self.animations_names)):
+            if self.animations_names[x].lower() == name.lower():
+                return x
+    def index_to_name(self,index):
+        return self.animations_names[index]
