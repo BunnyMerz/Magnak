@@ -39,26 +39,26 @@ class Player(): ## Não herda de spirte já que tem varios sprites dentro dele
         ####
 
     
-    def movement(self,keyboard,window):
+    def movement(self,keyboard,window,key_settings):
         if not(self.can_move):
             return
         moving = False
         allowed_to_run = self.allowed_to_run
 
-        run = keyboard.key_pressed("left_shift")
-        if keyboard.key_pressed('right') and not keyboard.key_pressed('left'):
+        run = keyboard.key_pressed(key_settings["run"])
+        if keyboard.key_pressed(key_settings['right']) and not keyboard.key_pressed(key_settings['left']):
             self.x += (self.speed + (run * self.run * self.speed * allowed_to_run)) * window.delta_time()
             moving = True
             self.set_animation(3)
-        elif keyboard.key_pressed('left') and not keyboard.key_pressed('right'):
+        elif keyboard.key_pressed(key_settings['left']) and not keyboard.key_pressed(key_settings['right']):
             self.x -= (self.speed + (run * self.run * self.speed * allowed_to_run)) * window.delta_time()
             moving = True
             self.set_animation(2)
-        if keyboard.key_pressed('down') and not keyboard.key_pressed('up'):
+        if keyboard.key_pressed(key_settings['down']) and not keyboard.key_pressed(key_settings['up']):
             self.y += (self.speed + (run * self.run * self.speed * allowed_to_run)) * window.delta_time()
             moving = True
             self.set_animation(0)
-        elif keyboard.key_pressed('up') and not keyboard.key_pressed('down'):
+        elif keyboard.key_pressed(key_settings['up']) and not keyboard.key_pressed(key_settings['down']):
             self.y -= (self.speed + (run * self.run * self.speed * allowed_to_run)) * window.delta_time()
             moving = True
             self.set_animation(1)
@@ -78,8 +78,9 @@ class Player(): ## Não herda de spirte já que tem varios sprites dentro dele
         sprite.update()
 
     def set_animation(self,index):
-        sprite = self.all_animations[self.curr_animation]
-        sprite.curr_frame = sprite.initial_frame
+        # if self.curr_animation != index: ## Ideia boa, mas precisa de melhoras
+        #     sprite = self.all_animations[self.curr_animation]
+        #     sprite.curr_frame = sprite.initial_frame
         self.curr_animation = index
     
     def name_to_index(self,name):

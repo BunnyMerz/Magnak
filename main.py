@@ -16,7 +16,8 @@ config= {
         'up':'up',
         'down':'down',
         'magic':'z',
-        'strong_magic':'x'
+        'strong_magic':'x',
+        'run':'left_shift'
     }
 }
 
@@ -86,7 +87,7 @@ for x in range(9):
 
 while(True):
 
-    player.movement(keyboard,window)
+    player.movement(keyboard,window,config['controlls'])
 
     bg.draw()
     for types in tiles:
