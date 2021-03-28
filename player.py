@@ -2,6 +2,7 @@ from PPlay.sprite import *
 import pygame
 import sys
 
+
 class Player(): ## Não herda de spirte já que tem varios sprites dentro dele
     def __init__(self, image_files, frames, total_durations, initial_frames, animation_names=[]):
 
@@ -18,13 +19,16 @@ class Player(): ## Não herda de spirte já que tem varios sprites dentro dele
         self.y = 0
         self.can_move = True
         self.allowed_to_run = True
+        self.casting = 0
+        self.cast_cooldown = 500
+        self.cast_on_cooldown = 0
 
         ## Ingame status
         self.hp = 20
         self.magic = 0 ## Magia que ele está usando no momento. Os números ainda precisam ser definidos
         self.base_speed = 170
         self.speed = self.base_speed
-        self.run = 0.3 ## porcentagem a acrescentar á velocidade. (base_speed + base_speed * run)
+        self.run = 0.8 ## porcentagem a acrescentar á velocidade. (base_speed + base_speed * run)
 
         ## Animações
         self.animations_names = animation_names ## Caso queria usar nome ao invés de index
@@ -37,6 +41,38 @@ class Player(): ## Não herda de spirte já que tem varios sprites dentro dele
             sprite.set_initial_frame(initial_frames[x])
             self.all_animations.append(sprite)
         ####
+
+    def cast(self,spell,key_settings,keyboard,window):
+        if self.casting > 0:
+            self.can_move = False
+            self.set_animation(self.casting)
+            self.update()
+            sprite = self.all_animations[self.curr_animation]
+            if sprite.get_curr_frame() == sprite.initial_frame:
+                self.casting = 0
+                self.can_move = True
+                self.cast_on_cooldown = window.time_elapsed() + self.cast_cooldown
+
+                orientation = self.index_to_name(self.curr_animation)[-1]
+                if orientation == 'l':
+                    self.set_animation(2)
+                elif orientation == 'r':
+                    self.set_animation(3)
+
+        elif self.cast_on_cooldown < window.time_elapsed():
+            if keyboard.key_pressed(key_settings['magic']):
+                orientation = self.index_to_name(self.curr_animation)[-1]
+                if orientation == 'l': ## Índice de animação Par é esquerda, impar é direita
+                    self.casting = self.name_to_index("weak_cast_l")
+                else: #if orientation == 'r':
+                    self.casting = self.name_to_index("weak_cast_r")
+            elif keyboard.key_pressed(key_settings['strong_magic']):
+                orientation = self.index_to_name(self.curr_animation)[-1]
+                if orientation == 'r':
+                    self.casting = self.name_to_index("strong_cast_r")
+                else: #if orientation == 'r':
+                    self.casting = self.name_to_index("strong_cast_l")
+
 
     
     def movement(self,keyboard,window,key_settings):
@@ -78,9 +114,6 @@ class Player(): ## Não herda de spirte já que tem varios sprites dentro dele
         sprite.update()
 
     def set_animation(self,index):
-        # if self.curr_animation != index: ## Ideia boa, mas precisa de melhoras
-        #     sprite = self.all_animations[self.curr_animation]
-        #     sprite.curr_frame = sprite.initial_frame
         self.curr_animation = index
     
     def name_to_index(self,name):
@@ -89,3 +122,4 @@ class Player(): ## Não herda de spirte já que tem varios sprites dentro dele
                 return x
     def index_to_name(self,index):
         return self.animations_names[index]
+    

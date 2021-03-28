@@ -56,9 +56,19 @@ for y in range(amounty):
 
 ## Setting player up, as well as their animations
 walking = assets["player"] + 'walking_'
-player_animations = [walking + 'down-0.7.png',walking + 'up-0.7.png',walking + 'left-0.7.png',walking + 'right-0.7.png']
-player_animations_names = ['walk_down','walk_up','walk_left','walk_right']
-player = Player(player_animations,[3] * 4,[400] * 4,[1] * 4)
+player_animations = [ ## Par é esquerda, impar é direita
+    walking + 'down-0.6.png',walking + 'up-0.6.png',
+    walking + 'left-0.6.png',walking + 'right-0.6.png',
+    assets["player"] + 'casting_weak_left-0.6.png',assets["player"] + 'casting_weak_right-0.6.png',
+    assets["player"] + 'casting_strong_left-0.6.png',assets["player"] + 'casting_strong_right-0.6.png'
+    ]
+player_animations_names = [
+    'walk_d','walk_u',
+    'walk_l','walk_r',
+    "weak_cast_l","weak_cast_r",
+    "strong_cast_l","strong_cast_r"
+    ]
+player = Player(player_animations,[3,3,3,3,4,4,3,3],[400,400,400,400,900,900,2000,2000],[1,1,1,1,0,0,0,0],player_animations_names)
 player.x = 400
 player.y = 0
 
@@ -86,7 +96,8 @@ for x in range(9):
 
 
 while(True):
-
+    
+    player.cast('',config['controlls'],keyboard,window)
     player.movement(keyboard,window,config['controlls'])
 
     bg.draw()
