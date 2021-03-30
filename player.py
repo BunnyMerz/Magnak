@@ -19,9 +19,13 @@ class Player(): ## Não herda de spirte já que tem varios sprites dentro dele
         self.y = 0
         self.can_move = True
         self.allowed_to_run = True
+        ##
         self.casting = 0
         self.cast_cooldown = 500
         self.cast_on_cooldown = 0
+        ##
+        self.stun = None
+        self.knoback_distance = [0,0]
 
         ## Ingame status
         self.hp = 20
@@ -73,6 +77,35 @@ class Player(): ## Não herda de spirte já que tem varios sprites dentro dele
                 else: #if orientation == 'r':
                     self.casting = self.name_to_index("strong_cast_l")
 
+    def take_damage(self,amount,damage_source,distance,stun=200):
+        if self.stun != None:
+            return
+        self.stun = self.index_to_name(self.curr_animation)[-1]
+        self.casting = 0
+        knoback_distance = [self.x - damage_source[0],self.y - damage_source[1]]
+        hip = ((knoback_distance[0])**2 + (knoback_distance[1])**2)**(1/2)
+        self.knoback_distance = [
+            knoback_distance[0] * distance/hip,
+            knoback_distance[1] * distance/hip
+        ]
+        self.all_animations[self.curr_animation].last_time = int(round(time.time() * 1000))
+
+    def knockback(self,window):
+        if self.stun != None:
+            ## self.axis = d/t * delta_t
+            ## self.axis = pixeis/milesegundo * delta_t segundos
+            self.set_animation(8)
+            self.update()
+            self.x += 2000 * self.knoback_distance[0]/self.sprite().total_duration * window.delta_time()
+            self.y += 2000 * self.knoback_distance[1]/self.sprite().total_duration * window.delta_time()
+            self.can_move = False
+            if self.sprite().curr_frame == self.sprite().final_frame - 1:
+                self.can_move = True
+                self.all_animations[self.curr_animation].curr_frame = 0
+                self.set_animation(self.name_to_index("walk_" + self.stun))
+                self.stun = None
+
+        
 
     
     def movement(self,keyboard,window,key_settings):
@@ -122,4 +155,7 @@ class Player(): ## Não herda de spirte já que tem varios sprites dentro dele
                 return x
     def index_to_name(self,index):
         return self.animations_names[index]
+
+    def sprite(self):
+        return self.all_animations[self.curr_animation]
     

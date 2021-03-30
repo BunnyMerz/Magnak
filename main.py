@@ -2,6 +2,7 @@ from PPlay.window import *
 from PPlay.sprite import *
 from player import *
 import random
+import pygame
 
 assets = {
     "hud":'assets/hud/',
@@ -60,15 +61,18 @@ player_animations = [ ## Par é esquerda, impar é direita
     walking + 'down-0.6.png',walking + 'up-0.6.png',
     walking + 'left-0.6.png',walking + 'right-0.6.png',
     assets["player"] + 'casting_weak_left-0.6.png',assets["player"] + 'casting_weak_right-0.6.png',
-    assets["player"] + 'casting_strong_left-0.6.png',assets["player"] + 'casting_strong_right-0.6.png'
+    assets["player"] + 'casting_strong_left-0.6.png',assets["player"] + 'casting_strong_right-0.6.png',
+    assets["player"] + 'damage-0.6.png'
     ]
 player_animations_names = [
     'walk_d','walk_u',
     'walk_l','walk_r',
     "weak_cast_l","weak_cast_r",
-    "strong_cast_l","strong_cast_r"
+    "strong_cast_l","strong_cast_r",
+    "damage_a"
     ]
-player = Player(player_animations,[3,3,3,3,4,4,3,3],[400,400,400,400,900,900,2000,2000],[1,1,1,1,0,0,0,0],player_animations_names)
+#Player([Animações],[frames],[durations],[frames_iniciais],[Names]=[])
+player = Player(player_animations,[3,3,3,3,4,4,3,3,2],[400,400,400,400,900,900,2000,2000,350],[1,1,1,1,0,0,0,0,0],player_animations_names)
 player.x = 400
 player.y = 0
 
@@ -78,8 +82,8 @@ weapon_frame.y = 10
 
 fire = Sprite(assets['hud'] + 'ice.png')
 fire = Sprite(assets['hud'] + 'lightning.png')
-fire = Sprite(assets['hud'] + 'fire.png')
 fire = Sprite(assets['hud'] + 'blank.png')
+fire = Sprite(assets['hud'] + 'fire.png')
 
 fire.x = 10
 fire.y = 10
@@ -94,11 +98,14 @@ for x in range(9):
     hoff += heart.width + 4
     hearts.append(heart)
 
-
 while(True):
     
+    player.knockback(window)
     player.cast('',config['controlls'],keyboard,window)
     player.movement(keyboard,window,config['controlls'])
+
+    if pygame.K_DOWN and keyboard.key_pressed("g"):
+        player.take_damage(1,[400,-100],120)        
 
     bg.draw()
     for types in tiles:
