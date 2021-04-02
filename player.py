@@ -26,6 +26,7 @@ class Player(): ## Não herda de spirte já que tem varios sprites dentro dele
         ##
         self.stun = None
         self.knoback_distance = [0,0]
+        self.invunerable = 0
 
         ## Ingame status
         self.hp = 20
@@ -47,7 +48,9 @@ class Player(): ## Não herda de spirte já que tem varios sprites dentro dele
         ####
 
     def cast(self,spell,key_settings,keyboard,window):
-        if self.casting > 0:
+        if self.stun != None: ## Se estiver Stunado, retorna
+            return
+        if self.casting > 0: ## 0 significa fazendo nada, se !=, cast tem o valor da animação anterior.
             self.can_move = False
             self.set_animation(self.casting)
             self.update()
@@ -66,44 +69,61 @@ class Player(): ## Não herda de spirte já que tem varios sprites dentro dele
         elif self.cast_on_cooldown < window.time_elapsed():
             if keyboard.key_pressed(key_settings['magic']):
                 orientation = self.index_to_name(self.curr_animation)[-1]
-                if orientation == 'l': ## Índice de animação Par é esquerda, impar é direita
+                if orientation == 'l':
                     self.casting = self.name_to_index("weak_cast_l")
-                else: #if orientation == 'r':
+                else:
                     self.casting = self.name_to_index("weak_cast_r")
             elif keyboard.key_pressed(key_settings['strong_magic']):
                 orientation = self.index_to_name(self.curr_animation)[-1]
                 if orientation == 'r':
                     self.casting = self.name_to_index("strong_cast_r")
-                else: #if orientation == 'r':
+                else:
                     self.casting = self.name_to_index("strong_cast_l")
 
-    def take_damage(self,amount,damage_source,distance,stun=200):
-        if self.stun != None:
+    def take_damage(self,amount,damage_source,distance,window):
+        if self.stun != None or self.invunerable > window.time_elapsed():
             return
-        self.stun = self.index_to_name(self.curr_animation)[-1]
-        self.casting = 0
-        knoback_distance = [self.x - damage_source[0],self.y - damage_source[1]]
-        hip = ((knoback_distance[0])**2 + (knoback_distance[1])**2)**(1/2)
-        self.knoback_distance = [
-            knoback_distance[0] * distance/hip,
-            knoback_distance[1] * distance/hip
-        ]
-        self.all_animations[self.curr_animation].last_time = int(round(time.time() * 1000))
+
+        self.hp -= amount ## Vida perdida
+        self.stun = self.index_to_name(self.curr_animation)[-1] ## Orientação quando o dano foi tomado
+        self.casting = 0 ## Cancelar qualquer magia
+
+        self.all_animations[self.curr_animation].last_time = int(round(time.time() * 1000)) ## Resetar o ciclo da animação
+        self.invunerable = window.time_elapsed() + 3000 ## Invulnerável por um tempo
+
+        try:
+            knoback_distance = [self.x - damage_source[0],self.y - damage_source[1]] ## [xi - xo, yi - yo]
+            hip = ((knoback_distance[0])**2 + (knoback_distance[1])**2)**(1/2)
+            self.knoback_distance = [
+                knoback_distance[0] * distance/hip,
+                knoback_distance[1] * distance/hip
+            ]
+        except:
+            self.knoback_distance = [0,0]
+        
+            
 
     def knockback(self,window):
         if self.stun != None:
-            ## self.axis = d/t * delta_t
-            ## self.axis = pixeis/milesegundo * delta_t segundos
             self.set_animation(8)
             self.update()
-            self.x += 2000 * self.knoback_distance[0]/self.sprite().total_duration * window.delta_time()
-            self.y += 2000 * self.knoback_distance[1]/self.sprite().total_duration * window.delta_time()
+            ## self.axis = d/t * delta_t
+            ## self.axis = pixeis/milesegundo * delta_t segundos
+            self.x += self.sprite().total_frames * 1000 * self.knoback_distance[0]/self.sprite().total_duration * window.delta_time()
+            self.y += self.sprite().total_frames * 1000 * self.knoback_distance[1]/self.sprite().total_duration * window.delta_time()
             self.can_move = False
+
+            # if self.sprite().drawable:
+            #     self.sprite().hide()
+            # else:
+            #     self.sprite().unhide()
+
             if self.sprite().curr_frame == self.sprite().final_frame - 1:
                 self.can_move = True
                 self.all_animations[self.curr_animation].curr_frame = 0
                 self.set_animation(self.name_to_index("walk_" + self.stun))
                 self.stun = None
+                self.sprite().unhide()
 
         
 

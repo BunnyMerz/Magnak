@@ -57,7 +57,7 @@ for y in range(amounty):
 
 ## Setting player up, as well as their animations
 walking = assets["player"] + 'walking_'
-player_animations = [ ## Par é esquerda, impar é direita
+player_animations = [
     walking + 'down-0.6.png',walking + 'up-0.6.png',
     walking + 'left-0.6.png',walking + 'right-0.6.png',
     assets["player"] + 'casting_weak_left-0.6.png',assets["player"] + 'casting_weak_right-0.6.png',
@@ -72,7 +72,7 @@ player_animations_names = [
     "damage_a"
     ]
 #Player([Animações],[frames],[durations],[frames_iniciais],[Names]=[])
-player = Player(player_animations,[3,3,3,3,4,4,3,3,2],[400,400,400,400,900,900,2000,2000,350],[1,1,1,1,0,0,0,0,0],player_animations_names)
+player = Player(player_animations,[3,3,3,3,4,4,3,3,3],[400,400,400,400,900,900,2000,2000,525],[1,1,1,1,0,0,0,0,0],player_animations_names)
 player.x = 400
 player.y = 0
 
@@ -104,8 +104,8 @@ while(True):
     player.cast('',config['controlls'],keyboard,window)
     player.movement(keyboard,window,config['controlls'])
 
-    if pygame.K_DOWN and keyboard.key_pressed("g"):
-        player.take_damage(1,[400,-100],120)        
+    if keyboard.key_pressed("g"):
+        player.take_damage(1,[player.x,player.y],120,window)        
 
     bg.draw()
     for types in tiles:
