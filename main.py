@@ -3,6 +3,19 @@ from PPlay.sprite import *
 from player import *
 import random
 import pygame
+def hud(power):
+    icon = 0
+
+    if power == 'Isur':
+        icon = Sprite(assets['hud'] + 'ice.png')
+    elif power == 'Firu':
+        icon = Sprite(assets['hud'] + 'fire.png')
+    elif power == 'Thundur':
+        icon = Sprite(assets['hud'] + 'lightning.png')
+    else:
+        icon =  Sprite(assets['hud'] + 'blank.png')
+
+    return icon
 
 assets = {
     "hud":'assets/hud/',
@@ -73,24 +86,35 @@ player_animations_names = [
     ]
 #Player([Animações],[frames],[durations],[frames_iniciais],[Names]=[])
 player = Player(player_animations,[3,3,3,3,4,4,3,3,3],[400,400,400,400,900,900,2000,2000,525],[1,1,1,1,0,0,0,0,0],player_animations_names)
-player.x = 400
-player.y = 0
-
+player.x = 486
+player.y = 568
+#Hud da habilidade
 weapon_frame = Sprite(assets['hud'] + 'weapon_frame.png')
 weapon_frame.x = 10
 weapon_frame.y = 10
+power = None
+power_hud = hud(power)
+power_hud.x = weapon_frame.x
+power_hud.y = weapon_frame.y
+#Variaveis das habilidades
+item_ice = True
+item_fire = True
+item_lightning = True
+essence_ice = Sprite(assets['magic'] + 'essenciagelo.png')
+essence_fire = Sprite(assets['magic'] + 'essenciafogo.png')
+essence_lightning = Sprite(assets['magic'] + 'essenciaraio.png')
+essence_ice.x = 300
+essence_ice.y = 300
+essence_fire.x = 400
+essence_fire.y = 400
+essence_lightning.x = 500
+essence_lightning.y = 500
 
-fire = Sprite(assets['hud'] + 'ice.png')
-fire = Sprite(assets['hud'] + 'lightning.png')
-fire = Sprite(assets['hud'] + 'blank.png')
-fire = Sprite(assets['hud'] + 'fire.png')
-
-fire.x = 10
-fire.y = 10
 
 hearts = []
 hx = 145
 hoff = 0
+
 for x in range(9):
     heart = Sprite(assets['hud'] + 'heart-0.3.png')
     heart.x = hx + hoff
@@ -105,15 +129,21 @@ while(True):
     player.movement(keyboard,window,config['controlls'])
 
     if keyboard.key_pressed("g"):
-        player.take_damage(1,[player.x,player.y],120,window)        
+        player.take_damage(1,[player.x,player.y],120,window)
+    
+    
 
     bg.draw()
     for types in tiles:
         for tile in types:
             tile.draw()
     player.draw()
-    fire.draw()
+    power_hud.draw()
     weapon_frame.draw()
+    essence_ice.draw()
+    if item_fire == True:
+        essence_fire.draw()
+    essence_lightning.draw()
     for heart in hearts:
         heart.draw()
     window.update()
