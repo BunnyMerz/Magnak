@@ -21,7 +21,8 @@ assets = {
     "hud":'assets/hud/',
     "player":'assets/player/',
     "menu":'assets/menu/',
-    'tiles':'assets/tiles/'
+    'tiles':'assets/tiles/',
+    'magic':'assets/magic/'
 }
 config= {
     'controlls':{
