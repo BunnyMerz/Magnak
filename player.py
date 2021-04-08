@@ -19,6 +19,7 @@ class Player(): ## Não herda de spirte já que tem varios sprites dentro dele
         self.y = 0
         self.can_move = True
         self.allowed_to_run = True
+        self.hide_sprite = False
         ##
         self.casting = 0
         self.cast_cooldown = 500
@@ -89,10 +90,10 @@ class Player(): ## Não herda de spirte já que tem varios sprites dentro dele
         self.casting = 0 ## Cancelar qualquer magia
 
         self.all_animations[self.curr_animation].last_time = int(round(time.time() * 1000)) ## Resetar o ciclo da animação
-        self.invunerable = window.time_elapsed() + 3000 ## Invulnerável por um tempo
+        self.invunerable = window.time_elapsed() + 200 ## Invulnerável por um tempo
 
         try:
-            knoback_distance = [self.x - damage_source[0],self.y - damage_source[1]] ## [xi - xo, yi - yo]
+            knoback_distance = [(self.x + self.sprite().width) - damage_source[0],(self.y + self.sprite().height) - damage_source[1]] ## [xi - xo, yi - yo]
             hip = ((knoback_distance[0])**2 + (knoback_distance[1])**2)**(1/2)
             self.knoback_distance = [
                 knoback_distance[0] * distance/hip,
@@ -112,11 +113,6 @@ class Player(): ## Não herda de spirte já que tem varios sprites dentro dele
             self.x += self.sprite().total_frames * 1000 * self.knoback_distance[0]/self.sprite().total_duration * window.delta_time()
             self.y += self.sprite().total_frames * 1000 * self.knoback_distance[1]/self.sprite().total_duration * window.delta_time()
             self.can_move = False
-
-            # if self.sprite().drawable:
-            #     self.sprite().hide()
-            # else:
-            #     self.sprite().unhide()
 
             if self.sprite().curr_frame == self.sprite().final_frame - 1:
                 self.can_move = True
@@ -158,6 +154,8 @@ class Player(): ## Não herda de spirte já que tem varios sprites dentro dele
             self.update()
         
     def draw(self):
+        if self.hide_sprite:
+            return
         sprite = self.all_animations[self.curr_animation]
         sprite.x,sprite.y = self.x,self.y
         sprite.draw()

@@ -123,28 +123,40 @@ for x in range(9):
     hoff += heart.width + 4
     hearts.append(heart)
 
+enemy = Sprite('assets/enemies/Lekro.png')
+enemy.x = 400
+enemy.y = 300
+enemy_center = [enemy.x + enemy.width, enemy.y + enemy.height]
+
 while(True):
     
     player.knockback(window)
     player.cast('',config['controlls'],keyboard,window)
+
+    if player.sprite().collided(enemy):
+        player.take_damage(1,enemy_center,120,window)
+    
     player.movement(keyboard,window,config['controlls'])
 
-    if keyboard.key_pressed("g"):
-        player.take_damage(1,[player.x,player.y],120,window)
-    
     
 
     bg.draw()
+
     for types in tiles:
         for tile in types:
             tile.draw()
-    player.draw()
-    power_hud.draw()
-    weapon_frame.draw()
+
     essence_ice.draw()
-    if item_fire == True:
+    if item_fire:
         essence_fire.draw()
     essence_lightning.draw()
+    
+    enemy.draw()
+    player.draw()
+
+
+    power_hud.draw()
+    weapon_frame.draw()
     for heart in hearts:
         heart.draw()
     window.update()
