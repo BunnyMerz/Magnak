@@ -1,6 +1,7 @@
 from PPlay.window import *
 from PPlay.sprite import *
 from player import *
+from hud import *
 import random
 import pygame
 def hud(power):
@@ -89,14 +90,15 @@ player_animations_names = [
 player = Player(player_animations,[3,3,3,3,4,4,3,3,3],[400,400,400,400,900,900,2000,2000,525],[1,1,1,1,0,0,0,0,0],player_animations_names)
 player.x = 486
 player.y = 568
-#Hud da habilidade
-weapon_frame = Sprite(assets['hud'] + 'weapon_frame.png')
-weapon_frame.x = 10
-weapon_frame.y = 10
-power = None
-power_hud = hud(power)
-power_hud.x = weapon_frame.x
-power_hud.y = weapon_frame.y
+
+player.set_health(3)
+player.set_base_health(5)
+player.hud.update_values()
+
+player.hud.x = 10
+player.hud.y = 10
+player.hud.align()
+
 #Variaveis das habilidades
 item_ice = True
 item_fire = True
@@ -111,18 +113,6 @@ essence_fire.y = 400
 essence_lightning.x = 500
 essence_lightning.y = 500
 
-
-hearts = []
-hx = 145
-hoff = 0
-
-for x in range(9):
-    heart = Sprite(assets['hud'] + 'heart-0.3.png')
-    heart.x = hx + hoff
-    heart.y = 10
-    hoff += heart.width + 4
-    hearts.append(heart)
-
 enemy = Sprite('assets/enemies/Lekro.png')
 enemy.x = 400
 enemy.y = 300
@@ -136,10 +126,9 @@ while(True):
     if player.sprite().collided(enemy):
         player.take_damage(1,enemy_center,120,window)
     
-    player.movement(keyboard,window,config['controlls'])
+    player.movement(keyboard,window,config['controlls'])    
 
-    
-
+    ##
     bg.draw()
 
     for types in tiles:
@@ -152,11 +141,7 @@ while(True):
     essence_lightning.draw()
     
     enemy.draw()
-    player.draw()
+    player.draw() ## Includes hud.draw()
+    ##
 
-
-    power_hud.draw()
-    weapon_frame.draw()
-    for heart in hearts:
-        heart.draw()
     window.update()

@@ -1,5 +1,6 @@
 from PPlay.sprite import *
 import pygame
+from hud import *
 import sys
 
 
@@ -14,6 +15,14 @@ class Player(): ## Não herda de spirte já que tem varios sprites dentro dele
         if len(image_files) > len(initial_frames):
             sys.exit("Missing Player arguments in initial_frames. Expected "+ str(len(image_files)) + ", got",str(len(initial_frames)))
         
+        ## Ingame status
+        self.base_hp = 20
+        self.hp = self.base_hp
+        self.magic = 0 ## Magia que ele está usando no momento. Os números ainda precisam ser definidos
+        self.base_speed = 170
+        self.speed = self.base_speed
+        self.run = 0.8 ## porcentagem a acrescentar á velocidade. (base_speed + base_speed * run)
+
         ## Infos e permissões
         self.x = 0
         self.y = 0
@@ -28,13 +37,11 @@ class Player(): ## Não herda de spirte já que tem varios sprites dentro dele
         self.stun = None
         self.knoback_distance = [0,0]
         self.invunerable = 0
-
-        ## Ingame status
-        self.hp = 20
-        self.magic = 0 ## Magia que ele está usando no momento. Os números ainda precisam ser definidos
-        self.base_speed = 170
-        self.speed = self.base_speed
-        self.run = 0.8 ## porcentagem a acrescentar á velocidade. (base_speed + base_speed * run)
+        ##
+        self.hud = Hud()
+        self.hud.base_hp = self.base_hp
+        self.hud.hp = self.hp
+        self.hud.update_values()
 
         ## Animações
         self.animations_names = animation_names ## Caso queria usar nome ao invés de index
@@ -85,7 +92,8 @@ class Player(): ## Não herda de spirte já que tem varios sprites dentro dele
         if self.stun != None or self.invunerable > window.time_elapsed():
             return
 
-        self.hp -= amount ## Vida perdida
+        self.change_health(-amount) ## Vida perdida
+
         self.stun = self.index_to_name(self.curr_animation)[-1] ## Orientação quando o dano foi tomado
         self.casting = 0 ## Cancelar qualquer magia
 
@@ -159,6 +167,7 @@ class Player(): ## Não herda de spirte já que tem varios sprites dentro dele
         sprite = self.all_animations[self.curr_animation]
         sprite.x,sprite.y = self.x,self.y
         sprite.draw()
+        self.hud.draw()
     
     def update(self):
         sprite = self.all_animations[self.curr_animation]
@@ -174,6 +183,26 @@ class Player(): ## Não herda de spirte já que tem varios sprites dentro dele
     def index_to_name(self,index):
         return self.animations_names[index]
 
+
+    def set_health(self,new_amount):
+        self.hp = new_amount
+        self.hud.hp = self.hp
+
+    def change_health(self,delta_amount):
+        self.hp += delta_amount
+        self.hud.hp = self.hp
+    
+    def set_base_health(self,new_amount):
+        self.base_hp = new_amount
+        if self.base_hp < self.hp:
+            self.hp = self.base_hp
+            self.hud.hp = self.hp
+        self.hud.base_hp = self.base_hp
+        self.hud.update_values
+
     def sprite(self):
         return self.all_animations[self.curr_animation]
+
+    def center(self):
+        return [self.x + self.sprite().width, self.y + self.sprite().height]
     
