@@ -200,6 +200,10 @@ class Player(): ## Não herda de spirte já que tem varios sprites dentro dele
         self.hud.base_hp = self.base_hp
         self.hud.update_values
 
+    def set_magic(self,magic_index):
+        self.magic = magic_index
+        self.hud.magic = magic_index
+
     def sprite(self):
         return self.all_animations[self.curr_animation]
 

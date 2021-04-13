@@ -23,14 +23,14 @@ class Hud(): ## Não herda de spirte já que tem varios sprites dentro dele
         self.blank_hp_sprites = []
 
         self.magic = 0
-        self.magic_sprite = []
+        self.magic_sprites = []
         for magic in magic_enum:
-            self.magic_sprite.append(Sprite(magic))
+            self.magic_sprites.append(Sprite(magic))
         self.magic_frame_sprite = Sprite('assets/hud/weapon_frame.png')
     
 
     def draw(self):
-        self.magic_sprite[self.magic].draw()
+        self.magic_sprites[self.magic].draw()
         self.magic_frame_sprite.draw()
 
         for heart in range(self.hp):
@@ -58,8 +58,9 @@ class Hud(): ## Não herda de spirte já que tem varios sprites dentro dele
         y = self.y
         self.magic_frame_sprite.x = x
         self.magic_frame_sprite.y = y
-        self.magic_sprite[self.magic].x = x
-        self.magic_sprite[self.magic].y = y
+        for magic in self.magic_sprites:
+            magic.x = x
+            magic.y = y
 
         hp_x = self.magic_frame_sprite.width + x + self.hud_margin
         for x in range(self.base_hp):

@@ -2,6 +2,7 @@ from PPlay.window import *
 from PPlay.sprite import *
 from player import *
 from hud import *
+from shards import *
 import random
 import pygame
 def hud(power):
@@ -100,18 +101,11 @@ player.hud.y = 10
 player.hud.align()
 
 #Variaveis das habilidades
-item_ice = True
-item_fire = True
-item_lightning = True
-essence_ice = Sprite(assets['magic'] + 'essenciagelo.png')
-essence_fire = Sprite(assets['magic'] + 'essenciafogo.png')
-essence_lightning = Sprite(assets['magic'] + 'essenciaraio.png')
-essence_ice.x = 300
-essence_ice.y = 300
-essence_fire.x = 400
-essence_fire.y = 400
-essence_lightning.x = 500
-essence_lightning.y = 500
+essence_fire = Shard(1,300,300)
+essence_ice = Shard(2,400,400)
+essence_lightning = Shard(3,500,500)
+
+shards_sprites = [essence_fire,essence_ice,essence_lightning]
 
 enemy = Sprite('assets/enemies/Lekro.png')
 enemy.x = 400
@@ -126,6 +120,12 @@ while(True):
     if player.sprite().collided(enemy):
         player.take_damage(1,enemy_center,120,window)
     
+    for shard in shards_sprites:
+        if shard.collided(player.sprite()):
+            player.set_magic(shard.magic)
+            shards_sprites.remove(shard)
+            break
+    
     player.movement(keyboard,window,config['controlls'])    
 
     ##
@@ -135,10 +135,8 @@ while(True):
         for tile in types:
             tile.draw()
 
-    essence_ice.draw()
-    if item_fire:
-        essence_fire.draw()
-    essence_lightning.draw()
+    for shard in shards_sprites:
+        shard.draw()
     
     enemy.draw()
     player.draw() ## Includes hud.draw()
