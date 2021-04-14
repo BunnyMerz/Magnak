@@ -3,7 +3,6 @@ import pygame
 from hud import *
 import sys
 
-
 class Player(): ## Não herda de spirte já que tem varios sprites dentro dele
     def __init__(self, image_files, frames, total_durations, initial_frames, animation_names=[]):
 
@@ -26,6 +25,8 @@ class Player(): ## Não herda de spirte já que tem varios sprites dentro dele
         ## Infos e permissões
         self.x = 0
         self.y = 0
+        self.width = 0
+        self.height = 0
         self.can_move = True
         self.allowed_to_run = True
         self.hide_sprite = False
@@ -97,11 +98,12 @@ class Player(): ## Não herda de spirte já que tem varios sprites dentro dele
         self.stun = self.index_to_name(self.curr_animation)[-1] ## Orientação quando o dano foi tomado
         self.casting = 0 ## Cancelar qualquer magia
 
+        self.set_animation(8)
         self.all_animations[self.curr_animation].last_time = int(round(time.time() * 1000)) ## Resetar o ciclo da animação
-        self.invunerable = window.time_elapsed() + 200 ## Invulnerável por um tempo
+        self.invunerable = window.time_elapsed() + 20 ## Invulnerável por um tempo
 
         try:
-            knoback_distance = [(self.x + self.sprite().width) - damage_source[0],(self.y + self.sprite().height) - damage_source[1]] ## [xi - xo, yi - yo]
+            knoback_distance = [(self.x + self.sprite().width/2) - damage_source[0],(self.y + self.sprite().height/2) - damage_source[1]] ## [xi - xo, yi - yo]
             hip = ((knoback_distance[0])**2 + (knoback_distance[1])**2)**(1/2)
             self.knoback_distance = [
                 knoback_distance[0] * distance/hip,
@@ -112,17 +114,20 @@ class Player(): ## Não herda de spirte já que tem varios sprites dentro dele
         
             
 
-    def knockback(self,window):
+    def knockback(self,window,solid_blocks=[]):
         if self.stun != None:
             self.set_animation(8)
             self.update()
             ## self.axis = d/t * delta_t
             ## self.axis = pixeis/milesegundo * delta_t segundos
-            self.x += self.sprite().total_frames * 1000 * self.knoback_distance[0]/self.sprite().total_duration * window.delta_time()
-            self.y += self.sprite().total_frames * 1000 * self.knoback_distance[1]/self.sprite().total_duration * window.delta_time()
+            amount_x = self.sprite().total_frames * 1000 * self.knoback_distance[0]/self.sprite().total_duration * window.delta_time()
+            self.move_x(amount_x,solid_blocks)
+            amount_y = self.sprite().total_frames * 1000 * self.knoback_distance[1]/self.sprite().total_duration * window.delta_time()
+            self.move_y(amount_y,solid_blocks)
             self.can_move = False
 
             if self.sprite().curr_frame == self.sprite().final_frame - 1:
+                self.update_all_animations_coords() ## Evitar que alguma spite fique em um local de dano
                 self.can_move = True
                 self.all_animations[self.curr_animation].curr_frame = 0
                 self.set_animation(self.name_to_index("walk_" + self.stun))
@@ -132,7 +137,7 @@ class Player(): ## Não herda de spirte já que tem varios sprites dentro dele
         
 
     
-    def movement(self,keyboard,window,key_settings):
+    def movement(self,keyboard,window,key_settings,solid_blocks=[]):
         if not(self.can_move):
             return
         moving = False
@@ -140,19 +145,19 @@ class Player(): ## Não herda de spirte já que tem varios sprites dentro dele
 
         run = keyboard.key_pressed(key_settings["run"])
         if keyboard.key_pressed(key_settings['right']) and not keyboard.key_pressed(key_settings['left']):
-            self.x += (self.speed + (run * self.run * self.speed * allowed_to_run)) * window.delta_time()
+            self.move_x((self.speed + (run * self.run * self.speed * allowed_to_run)) * window.delta_time(), solid_blocks)
             moving = True
             self.set_animation(3)
         elif keyboard.key_pressed(key_settings['left']) and not keyboard.key_pressed(key_settings['right']):
-            self.x -= (self.speed + (run * self.run * self.speed * allowed_to_run)) * window.delta_time()
+            self.move_x( (self.speed + (run * self.run * self.speed * allowed_to_run)) * -window.delta_time(), solid_blocks)
             moving = True
             self.set_animation(2)
         if keyboard.key_pressed(key_settings['down']) and not keyboard.key_pressed(key_settings['up']):
-            self.y += (self.speed + (run * self.run * self.speed * allowed_to_run)) * window.delta_time()
+            self.move_y((self.speed + (run * self.run * self.speed * allowed_to_run)) * window.delta_time(), solid_blocks)
             moving = True
             self.set_animation(0)
         elif keyboard.key_pressed(key_settings['up']) and not keyboard.key_pressed(key_settings['down']):
-            self.y -= (self.speed + (run * self.run * self.speed * allowed_to_run)) * window.delta_time()
+            self.move_y((self.speed + (run * self.run * self.speed * allowed_to_run)) * -window.delta_time(), solid_blocks)
             moving = True
             self.set_animation(1)
         
@@ -172,6 +177,11 @@ class Player(): ## Não herda de spirte já que tem varios sprites dentro dele
     def update(self):
         sprite = self.all_animations[self.curr_animation]
         sprite.update()
+    
+    def update_all_animations_coords(self):
+        for sprite in self.all_animations:
+            sprite.x = self.x
+            sprite.y = self.y
 
     def set_animation(self,index):
         self.curr_animation = index
@@ -210,3 +220,46 @@ class Player(): ## Não herda de spirte já que tem varios sprites dentro dele
     def center(self):
         return [self.x + self.sprite().width, self.y + self.sprite().height]
     
+    def move_x(self,amount,solid_blocks=[]):
+        for block in solid_blocks:
+            if self.collision_with_solids(block):
+                self.correct_coord(block)
+        self.x += amount
+        
+    def move_y(self,amount,solid_blocks=[]):
+        for block in solid_blocks:
+            if self.collision_with_solids(block):
+                self.correct_coord(block)
+        self.y += amount
+
+    def collision_with_solids(self,solid_block):
+        min1_x = self.x
+        max1_x = self.x + self.sprite().width
+        min1_y = self.y + self.sprite().height * 1/2 
+        max1_y = self.y + self.sprite().height
+
+        max2_x = solid_block.x + solid_block.width
+        max2_y = solid_block.y + solid_block.height
+        if(min1_x >= max2_x or max1_x <= solid_block.x) or (min1_y  >= max2_y or max1_y <= solid_block.y):
+            return False
+        return True
+    
+    def correct_coord(self,collided_object): ## Whenever the player collides with something solid, call this function to push him out of the solid block
+        side1 = collided_object.x + collided_object.width - self.x 
+        side2 = collided_object.x                         - self.sprite().width - self.x
+        top1 =  collided_object.y + collided_object.width - self.y - (self.sprite().height * 1/2)
+        top2 =  collided_object.y                         - self.y - self.sprite().height
+
+        values = [side2,top1,top2]
+        smallest_not_abs = side1
+        index = 0
+
+        for x in range(len(values)):
+            if abs(values[x]) < abs(smallest_not_abs):
+                smallest_not_abs = values[x]
+                index = x + 1
+
+        if index == 0 or index == 1:
+            self.x += smallest_not_abs
+        else:
+            self.y += smallest_not_abs
