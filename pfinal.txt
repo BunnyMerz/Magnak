@@ -5,6 +5,18 @@ Magias:
 
 Tiles:
 	Class que possui um sprite, x, y, z, onde z representa a altura e solid para dizer se deve haver colisão com ele.
+	Se for mais conviniente, usar notação de números para se referir a cada tipo de tile. Assim, a matriz de tiles para a room ficar "legível".
+	[
+	[0,0,1,0,0],
+	[0,2,2,2,0],
+	[1,2,2,2,1],
+	[0,0,0,0,0]   ## Sala quadrada com 3 saidas e uma ára de 3x2 de chão.
+	]
+	#ou
+	"00100",
+	"02220",
+	"12221",
+	"00000"       ## O que impediria de usar valores maiores que 9, e obrigaria a usar chars. Isso torna mais facil editar, mas no final das contas não faz diferença
 
 inimigos:
 	Cada um pode ser bem específico, então tem q analisar mais a fundo
@@ -33,14 +45,19 @@ Room:
 
 	Também possui uma lista com todos os inimigos e um método para resetar a posição e vida dos Inimigos
 
+	Caso tenha usado a notação de número para os tiles, aqui vc pode usar uma função que recebe essa matriz de números para criar a matriz de tiles.
+
 Area ou Mapa:
 	Possui uma Matriz de Rooms e o posicionamento de cada room na matriz indica para onde o player vai caso ele ande até a extremidade de uma sala
 	Exemplo:
 	[[0,1],
 	 [2,3]]
 	
+	Pode usar um dicionário {0:'room',1:'lroom',2:'groom'} para representar as salas dentro da matriz do mapa.
+	Pode usar 0 para representar o nada/vaizo.
+	
 	Caso o player ande até a borda direita da sala 0, ele irá para a sala 1.
-	Métodos helpers podem ser úteis, como por exemplo um métotod right_room(self,current_room) que retorna a sala á direita da sala dada independente do caso. (Trate os casos especiáis,  como por exemplo os extremos)
+	Métodos helpers podem ser úteis, como por exemplo um métotod right_room(self,current_room) que retorna a sala á direita da sala dada independente do caso. (Trate os casos especiáis,  como por exemplo os extremos ou salas perto de um vazio)
 	Ideias para atributos:
 	self.current_room ## Ou seja, é mais um mapa do que só uma área, já que represeta a pos atual do jogador
 	                  ## Outra possibilidade é deixar esse current room no jogador.
