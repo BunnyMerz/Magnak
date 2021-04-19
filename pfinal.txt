@@ -1,0 +1,47 @@
+Magias:
+	Em geral, a Class Magia (Específica de um elemento) recebe x,y e uma lista com [x',y'] que vai definir o quanto ela anda para cada direção
+	Exemplo, Fogo e Gelo andam linearmente em uma direção
+	Raio não anda, mas sua animação sim, que é o que defina quando a hitbox fica ativa
+
+Tiles:
+	Class que possui um sprite, x, y, z, onde z representa a altura e solid para dizer se deve haver colisão com ele.
+
+inimigos:
+	Cada um pode ser bem específico, então tem q analisar mais a fundo
+	Possui:
+	self.base_hp
+	self.inital coords = [x,y,z]
+	self.x
+	self.y
+	self.z
+	self.hp
+	self.damage ## Dano de suas magias
+	self.body_damage ## Dano que é dado quando collide com o player
+	self.alive ## Booleano para evitar que um inimigo morto seja revivido após resetar a sala, mas possível de resetar caso o player morra.
+	self.respawnable ## Booleano que define se ele reseta quando a sala reseta.
+
+	def reset(self):
+		if alive or respawnable:
+			self.hp = self.base_hp
+			etc
+
+	Provavelmente alguns métodos para a IA
+	#### Importante lembrar da colisão. Use sempre um método para mudar os atributos como o x e o y. De uma olhada no move() do player
+	#### Outro exemplo é o decrease_health()
+Room:
+	Class que recebe uma lista que contém matrizes de Tiles para serem desenhadas. A lista é desenhada de baixo para cima (O index representa a altura no z-axis). Ele tmb possui um atributo que contém todos os elementos que são sólidos separados por altura.
+
+	Também possui uma lista com todos os inimigos e um método para resetar a posição e vida dos Inimigos
+
+Area ou Mapa:
+	Possui uma Matriz de Rooms e o posicionamento de cada room na matriz indica para onde o player vai caso ele ande até a extremidade de uma sala
+	Exemplo:
+	[[0,1],
+	 [2,3]]
+	
+	Caso o player ande até a borda direita da sala 0, ele irá para a sala 1.
+	Métodos helpers podem ser úteis, como por exemplo um métotod right_room(self,current_room) que retorna a sala á direita da sala dada independente do caso. (Trate os casos especiáis,  como por exemplo os extremos)
+	Ideias para atributos:
+	self.current_room ## Ou seja, é mais um mapa do que só uma área, já que represeta a pos atual do jogador
+	                  ## Outra possibilidade é deixar esse current room no jogador.
+	self.rooms
