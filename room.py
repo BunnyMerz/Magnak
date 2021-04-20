@@ -17,17 +17,18 @@ class Room():
         if dinamic_objetcs == [] and self.enemies == []:
             self.simple_draw()
             return
-        x_y = player.center()
+        x_y = player.base()
         indexes = [int(x_y[1]/64 * self.width + x_y[0]/64)]
         for objects in dinamic_objetcs:
-            indexes.append(int(objects.y/64 * self.width + objects.x/64))
+            obj_center = objects.base()
+            indexes.append(int(obj_center[1]/64 * self.width + obj_center[0]/64))
         for enemy in self.enemies:
-            indexes.append(int(enemy.y/64 * self.width + enemy.x/64))
+            enemy_center = enemy.base()
+            indexes.append(int(enemy_center[1]/64 * self.width + enemy_center[0]/64))
 
         ids = [x for x in range(len(indexes))]
         objetcs_to_draw = [player] + dinamic_objetcs + self.enemies
         indexes,_,objetcs_to_draw = [ list(tuple) for tuple in zip(*sorted(zip(indexes,ids,objetcs_to_draw))) ]
-        print(indexes)
         
         one_time_event(0,self.width * self.height,indexes,objetcs_to_draw,function_draw,self.draw_by_index)
     

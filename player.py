@@ -219,7 +219,9 @@ class Player(): ## Não herda de spirte já que tem varios sprites dentro dele
         return self.all_animations[self.curr_animation]
 
     def center(self):
-        return [self.x + self.sprite().width, self.y + self.sprite().height]
+        return [self.x + self.sprite().width/2, self.y + 2*self.sprite().height/3]
+    def base(self):
+        return [self.x + self.sprite().width/2, self.y + self.sprite().height]
     
     def move_x(self,amount,solid_blocks=[]):
         for block in solid_blocks:

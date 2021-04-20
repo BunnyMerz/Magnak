@@ -3,6 +3,7 @@ from PPlay.sprite import *
 from player import *
 from hud import *
 from shards import *
+from base_enemy import *
 from tile import *
 from room import *
 import random
@@ -116,7 +117,7 @@ shards_sprites = [essence_fire,essence_ice,essence_lightning]
 
 enemies = []
 for x in range(4):
-    enemy = Sprite('assets/enemies/Lekro.png')
+    enemy = BaseEnemy('assets/enemies/Lekro.png')
     enemy.x = random.randint(30,300)
     enemy.y = random.randint(100,300)
     enemies.append(enemy)
