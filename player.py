@@ -25,7 +25,9 @@ class Player(): ## Não herda de spirte já que tem varios sprites dentro dele
         ## Infos e permissões
         self.x = 0
         self.y = 0
-        self.z = 0
+        self.z = 1
+        self.map = 0
+        self.room = 0
         self.width = 0
         self.height = 0
         self.can_move = True
@@ -115,16 +117,16 @@ class Player(): ## Não herda de spirte já que tem varios sprites dentro dele
         
             
 
-    def knockback(self,window,solid_blocks=[]):
+    def knockback(self,window):
         if self.stun != None:
             self.set_animation(8)
             self.update()
             ## self.axis = d/t * delta_t
             ## self.axis = pixeis/milesegundo * delta_t segundos
             amount_x = self.sprite().total_frames * 1000 * self.knoback_distance[0]/self.sprite().total_duration * window.delta_time()
-            self.move_x(amount_x,solid_blocks)
+            self.move_x(amount_x)
             amount_y = self.sprite().total_frames * 1000 * self.knoback_distance[1]/self.sprite().total_duration * window.delta_time()
-            self.move_y(amount_y,solid_blocks)
+            self.move_y(amount_y)
             self.can_move = False
 
             if self.sprite().curr_frame == self.sprite().final_frame - 1:
@@ -138,7 +140,7 @@ class Player(): ## Não herda de spirte já que tem varios sprites dentro dele
         
 
     
-    def movement(self,keyboard,window,key_settings,solid_blocks=[]):
+    def movement(self,keyboard,window,key_settings):
         if not(self.can_move):
             return
         moving = False
@@ -146,19 +148,19 @@ class Player(): ## Não herda de spirte já que tem varios sprites dentro dele
 
         run = keyboard.key_pressed(key_settings["run"])
         if keyboard.key_pressed(key_settings['right']) and not keyboard.key_pressed(key_settings['left']):
-            self.move_x((self.speed + (run * self.run * self.speed * allowed_to_run)) * window.delta_time(), solid_blocks)
+            self.move_x((self.speed + (run * self.run * self.speed * allowed_to_run)) * window.delta_time())
             moving = True
             self.set_animation(3)
         elif keyboard.key_pressed(key_settings['left']) and not keyboard.key_pressed(key_settings['right']):
-            self.move_x( (self.speed + (run * self.run * self.speed * allowed_to_run)) * -window.delta_time(), solid_blocks)
+            self.move_x( (self.speed + (run * self.run * self.speed * allowed_to_run)) * -window.delta_time())
             moving = True
             self.set_animation(2)
         if keyboard.key_pressed(key_settings['down']) and not keyboard.key_pressed(key_settings['up']):
-            self.move_y((self.speed + (run * self.run * self.speed * allowed_to_run)) * window.delta_time(), solid_blocks)
+            self.move_y((self.speed + (run * self.run * self.speed * allowed_to_run)) * window.delta_time())
             moving = True
             self.set_animation(0)
         elif keyboard.key_pressed(key_settings['up']) and not keyboard.key_pressed(key_settings['down']):
-            self.move_y((self.speed + (run * self.run * self.speed * allowed_to_run)) * -window.delta_time(), solid_blocks)
+            self.move_y((self.speed + (run * self.run * self.speed * allowed_to_run)) * -window.delta_time())
             moving = True
             self.set_animation(1)
         
@@ -170,9 +172,14 @@ class Player(): ## Não herda de spirte já que tem varios sprites dentro dele
     def draw(self):
         if self.hide_sprite:
             return
-        sprite = self.all_animations[self.curr_animation]
-        sprite.x,sprite.y = self.x,self.y
-        sprite.draw()
+            # self.hud.draw()  ## Hud precisa ter draw() após player para sobre por ele
+        else:
+            sprite = self.all_animations[self.curr_animation]
+            sprite.x,sprite.y = self.x,self.y
+            sprite.draw()
+            # self.hud.draw() ## Hud precisa ter draw() após player para sobre por ele
+    
+    def draw_hud(self):
         self.hud.draw()
     
     def update(self):
@@ -222,15 +229,18 @@ class Player(): ## Não herda de spirte já que tem varios sprites dentro dele
         return [self.x + self.sprite().width/2, self.y + 2*self.sprite().height/3]
     def base(self):
         return [self.x + self.sprite().width/2, self.y + self.sprite().height]
+    def tile_coords(self,room_width):
+        x,y = self.center()
+        return [int(x/64),int(y/64) % room_width]
     
-    def move_x(self,amount,solid_blocks=[]):
-        for block in solid_blocks:
+    def move_x(self,amount):
+        for block in self.room.get_surrodings(int(self.x/64),int(self.y/64) % self.room.width,self.z):
             if self.collision_with_solids(block):
                 self.correct_coord(block)
         self.x += amount
         
-    def move_y(self,amount,solid_blocks=[]):
-        for block in solid_blocks:
+    def move_y(self,amount):
+        for block in self.room.get_surrodings(int(self.x/64),int(self.y/64) % self.room.width,self.z):
             if self.collision_with_solids(block):
                 self.correct_coord(block)
         self.y += amount

@@ -4,42 +4,123 @@ def function_draw(obj):
     obj.draw()
 
 class Room():
-    def __init__(self,tiles=[],solids=[],enemies=[]):
+    def __init__(self,tiles=[],solids=[],enemies=[],x=0,y=0):
+        self.x = x ## Quantos tiles eles está de distância do (0,0). Recomendado 1 ou 2 á esquerda e dois a cima. (-2,-2)
+        self.y = y
         self.tiles = tiles
-        self.solids = solids
         self.enemies = enemies
+
         self.width = len(tiles[0][0])
         self.height = len(tiles[0])
         self.levels = len(tiles)
 
+        self.solids = []
+        for floor in solids:
+            floor_solids = {}
+            for solid in floor:
+                floor_solids[int(solid.x/64) + int(solid.y/64) * self.width] = solid
+            self.solids.append(floor_solids)
+
+        self.floor_been_drawn = 0
     
     def draw(self,player,dinamic_objetcs=[]):
-        if dinamic_objetcs == [] and self.enemies == []:
-            self.simple_draw()
-            return
-        x_y = player.base()
-        indexes = [int(x_y[1]/64 * self.width + x_y[0]/64)]
-        for objects in dinamic_objetcs:
-            obj_center = objects.base()
-            indexes.append(int(obj_center[1]/64 * self.width + obj_center[0]/64))
-        for enemy in self.enemies:
-            enemy_center = enemy.base()
-            indexes.append(int(enemy_center[1]/64 * self.width + enemy_center[0]/64))
-
-        ids = [x for x in range(len(indexes))]
-        objetcs_to_draw = [player] + dinamic_objetcs + self.enemies
-        indexes,_,objetcs_to_draw = [ list(tuple) for tuple in zip(*sorted(zip(indexes,ids,objetcs_to_draw))) ]
         
-        one_time_event(0,self.width * self.height,indexes,objetcs_to_draw,function_draw,self.draw_by_index)
+        # debugging
+        # obj_base = player.base()
+        # index = int((obj_base[1]/64 + self.y) * self.width + (obj_base[0]/64 + self.y))
+        # print(index, [int(index/self.width),index % self.width])
+
+        all_dinamic_objects = dinamic_objetcs + self.enemies
+        all_dinamic_objects.append(player) ## Append em player para evitar que o vscode reclame.
+
+        for floor in range(self.levels):
+            self.floor_been_drawn = floor
+            indexes = []
+            dinamic_objects_this_floor,all_dinamic_objects = same_floor(all_dinamic_objects,floor)
+
+            if dinamic_objects_this_floor == []:
+                self.simple_draw()
+                continue
+
+            for objects in dinamic_objects_this_floor:
+                obj_base = objects.base()
+                indexes.append(int((obj_base[1]/64 + self.y) * self.width + (obj_base[0]/64 + self.y)))
+
+            ids = [x for x in range(len(indexes))]
+            indexes,_,dinamic_objects_this_floor = [ list(tuple) for tuple in zip(*sorted(zip(indexes,ids,dinamic_objects_this_floor))) ]
+            
+            one_time_event(0,self.width * self.height,indexes,dinamic_objects_this_floor,function_draw,self.draw_by_index)
+            ## One_time_event(): ## Basicamente faz o seguinde:
+            ## z = 0
+            ## for x in range(0, self.width * self.height):
+            ##      if x in indexes:
+            ##          function_draw(objects_to_draw[z])
+            ##          z += 1
+            ##      else:
+            ##          self.draw_by_index(x)
+
+        for leftover_objs in all_dinamic_objects:
+            leftover_objs.draw()
     
     def draw_by_index(self,index):
-        self.tiles[0][int(index/self.width)][index % self.width].draw()
+        tile = self.tiles[self.floor_been_drawn][int(index/self.width)][index % self.width]
+        if tile != None:
+            tile.draw()
 
     def simple_draw(self):
-        for floor in self.tiles:
-            for row in floor:
-                for tile in row:
-                    tile.draw()
+        for row in self.tiles[self.floor_been_drawn]:
+            for c in row:
+                c.draw()
+    
+    def get_tile(self,x,y,z):
+        try:
+            return self.tiles[z][y][x]
+        except:
+            return
+    
+    def get_solids(self,z,indexes):
+        solids = []
+        for index in indexes:
+            try:
+                solids.append(self.solids[z][index])
+            except:
+                pass
+                
+        return solids
+    
+    def get_surrodings(self,x,y,z):
+        """Returns a 3x3 of tiles of solids in the same z and voids in z-1"""
+        ## Pegar 9 tiles solidos em z
+        solid_indexes = []
+        vals = [(1,1),(0,1),(1,0),(0,0)]
+        for w in range(4):
+            for a in range(0,3,2):
+                for b in range(0,3,2):
+                    solid_indexes.append(((x + (a - 1)* vals[w][0]))+((y +((b-1) * vals[w][1])) * self.width))
+        ## Pegar 9 tiles void em z-1
+        tiles_under = []
+        vals = [(1,1),(0,1),(1,0),(0,0)]
+        for w in range(4):
+            for a in range(0,3,2):
+                for b in range(0,3,2):
+                    tile = self.get_tile((x + (a - 1)* vals[w][0]),(y +((b-1) * vals[w][1])),z-1)
+                    if tile != None:
+                        if tile.type == None:
+                            tiles_under.append(tile)
+                            
+        ## Lembrando que o tamanho varia, depenendo de quantos tiles achar
+        return self.get_solids(z,solid_indexes) + tiles_under
+        #########################################
+                
+def same_floor(objs,floor):
+    new_list = []
+    obj = 0
+    while(obj < len(objs)):
+        if objs[obj].z == floor:
+            new_list.append(objs.pop(obj))
+        else:
+            obj += 1
+    return(new_list,objs)
 
 
 

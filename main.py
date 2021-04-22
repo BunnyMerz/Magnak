@@ -31,53 +31,65 @@ config= {
 # window = Window(864, 576)
 window = Window(972,648)
 keyboard = window.get_keyboard()
+clock = pygame.time.Clock()
 
 ## Background diminuido para a janela não ficar muito grande
 bg = Sprite( assets["menu"] + 'fundo_menu_magnak-0.9.jpg')
 
-ground = Sprite(assets['tiles'] + 'ground.png',3)
-amountx = int(window.width/ground.width) + 1
-amounty = int(window.height/ground.height) + 1
 # ground = []
 # wall = []
 # gates = []
 # tiles = [ground,wall,gates]
 tilesize = 64
-solid_tiles = []
+amountx = int(window.width/tilesize) + 1
+amounty = int(window.height/tilesize) + 1
 room_tiles = []
-for y in range(amounty):
+for y in range(amounty + 2):
     row = []
     for x in range(amountx):
-        if x == 5 and y == 5:
-            tile = Sprite(assets['tiles'] + 'wall3.png')
-            row.append(tile)
-            solid_tiles.append(tile)
-        elif x == 6 and y == 0:
-            tile = Sprite(assets['tiles'] + 'gate1.png')
-            row.append(tile)
-        elif x == 7 and y == 0:
-            tile = Sprite(assets['tiles'] + 'gate2.png')
-            row.append(tile)
-        elif x == 6 and y == 1:
-            tile = Sprite(assets['tiles'] + 'gate3.png')
-            row.append(tile)
-        elif x == 7 and y == 1:
-            tile = Sprite(assets['tiles'] + 'gate4.png')
-            row.append(tile)
-        elif (y == 0 or y == 1):
-            tile = Sprite(assets['tiles'] + 'wall1.png')
-            row.append(tile)
-            solid_tiles.append(tile)
-        elif not((x == 7 or x == 8) and (y == 0 or y == 1)):
-            tile = Sprite(assets['tiles'] + 'ground1.png')
+        if y == 7:
+            tile = (Tile(None))
             row.append(tile)
         else:
-            row.append(Sprite(assets['tiles'] + 'empty.png'))
+            tile = Tile(1)
+            row.append(tile)
         tile.x = tilesize * x
         tile.y = tilesize * y
     room_tiles.append(row)
 
-room = Room([room_tiles],solid_tiles)
+tilesize = 64
+solid_tiles = []
+room_tiles2 = []
+for y in range(amounty + 2):
+    row = []
+    for x in range(amountx):
+        if x == 6 and y == 0:
+            tile = Tile('gate1')
+            row.append(tile)
+        elif x == 7 and y == 0:
+            tile = Tile('gate2')
+            row.append(tile)
+        elif x == 6 and y == 1:
+            tile = Tile('gate3')
+            row.append(tile)
+        elif x == 7 and y == 1:
+            tile = Tile('gate4')
+            row.append(tile)
+        elif x == 5 and y == 5:
+            tile = Tile(6)
+            row.append(tile)
+            solid_tiles.append(tile)
+        elif (y == 0 or y == 1):
+            tile = Tile(5)
+            row.append(tile)
+            solid_tiles.append(tile)
+        else:
+            row.append(Tile(None))
+        tile.x = tilesize * x
+        tile.y = tilesize * y
+    room_tiles2.append(row)
+
+room = Room([room_tiles,room_tiles2],[[],solid_tiles])
 
 ## Setting player up, as well as their animations
 walking = assets["player"] + 'walking_'
@@ -124,14 +136,14 @@ for x in range(4):
 
 room.enemies = enemies
 
+player.room = room
 while(True):
-    
-    player.knockback(window,solid_tiles)
-    player.cast('',config['controlls'],keyboard,window)
+    player.knockback(window) ## Applying knockback if needed
+    player.cast('',config['controlls'],keyboard,window) ## Casting a spell if needed
 
-    # for enemy in enemies:
-    #     if player.sprite().collided(enemy):
-    #         player.take_damage(1,[enemy.x + enemy.width, enemy.y + enemy.height],100,window)
+    for enemy in room.enemies: ## Collision with enemies
+        if player.sprite().collided(enemy):
+            player.take_damage(1,[enemy.x + enemy.width, enemy.y + enemy.height],100,window)
     
     for shard in shards_sprites:
         if shard.collided(player.sprite()):
@@ -139,22 +151,15 @@ while(True):
             shards_sprites.remove(shard)
             break
     
-    player.movement(keyboard,window,config['controlls'],solid_tiles)    
+    player.movement(keyboard,window,config['controlls']) ## Movement 
 
     ##
     bg.draw()
 
-    # for types in tiles:
-    #     for tile in types:
-    #         tile.draw()
-    room.draw(player)
-
-    for shard in shards_sprites:
-        shard.draw()
+    room.draw(player,shards_sprites) ## Player,room,enemies
     
-    # for enemy in enemies:
-    #     enemy.draw()
-    # player.draw() ## Includes hud.draw()
-    ##
+    player.draw_hud() ## Hud
 
+    ##
+    clock.tick(120) ## Framerate
     window.update()
