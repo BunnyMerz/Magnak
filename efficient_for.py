@@ -1,10 +1,13 @@
 def one_time_event(a,b,exceptions,exceptions_objects,special_function,base_function):
     """
+    z = 0
+    
     for x in [a,b[
         where if x not in expections:
             base_function(x)
         else:
-            special_function(expetions_objects[x])
+            special_function(expetions_objects[z])
+            z += 1
     """
     z = len(exceptions) - 1
     while(exceptions[z] > b and z != 0):

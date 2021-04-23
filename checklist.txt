@@ -1,0 +1,32 @@
+[   ] - Spells
+	[   ] - Basic
+	[   ] - Fire
+		[   ] - Weak
+		[   ] - Strong
+	[   ] - Electro
+		[   ] - Weak
+		[   ] - Strong
+	[   ] - Freeze
+		[   ] - Weak
+		[   ] - Strong
+
+[ x ] - Tiles
+	[ x ] - Solid
+	[ x ] - Floor
+	[ x ] - Cealing
+
+[   ] - Room
+	[ x ] - Collisions
+	[ x ] - Faster and more efficient
+	[ x ] - Floor (Only able to walk on existing floor)
+	[   ] - Exceptions (Like gates, or small custom hitbox assets)
+	[   ] - Stairs
+	[ x ] - Room generator functon trought .txt
+
+[   ] - Map
+	[ x ] - Render considering depth and height
+	[   ] - Map generator function trought .txt
+
+[   ] - Enemies
+	[   ] - Classes de cada inimigo
+		[   ] - Slime

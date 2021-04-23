@@ -4,15 +4,16 @@ def function_draw(obj):
     obj.draw()
 
 class Room():
-    def __init__(self,tiles=[],solids=[],enemies=[],x=0,y=0):
+    def __init__(self,floors=[],solids=[],enemies=[],x=0,y=0):
         self.x = x ## Quantos tiles eles está de distância do (0,0). Recomendado 1 ou 2 á esquerda e dois a cima. (-2,-2)
         self.y = y
-        self.tiles = tiles
+        self.floors = floors
         self.enemies = enemies
+        self.shards = []
 
-        self.width = len(tiles[0][0])
-        self.height = len(tiles[0])
-        self.levels = len(tiles)
+        self.width = len(floors[0][0])
+        self.height = len(floors[0])
+        self.levels = len(floors)
 
         self.solids = []
         for floor in solids:
@@ -25,12 +26,14 @@ class Room():
     
     def draw(self,player,dinamic_objetcs=[]):
         
-        # debugging
+        # <debugging>
         # obj_base = player.base()
-        # index = int((obj_base[1]/64 + self.y) * self.width + (obj_base[0]/64 + self.y))
+        # index = int((obj_base[1]/64 + self.y) * self.width + (obj_base[0]/64 + self.x))
         # print(index, [int(index/self.width),index % self.width])
+        # print(player.room,player.z,self.solids)
+        # <debugging/>
 
-        all_dinamic_objects = dinamic_objetcs + self.enemies
+        all_dinamic_objects = dinamic_objetcs + self.enemies + self.shards
         all_dinamic_objects.append(player) ## Append em player para evitar que o vscode reclame.
 
         for floor in range(self.levels):
@@ -44,13 +47,13 @@ class Room():
 
             for objects in dinamic_objects_this_floor:
                 obj_base = objects.base()
-                indexes.append(int((obj_base[1]/64 + self.y) * self.width + (obj_base[0]/64 + self.y)))
+                indexes.append(int((obj_base[1]/64 + self.y) * self.width + (obj_base[0]/64 + self.x)))
 
             ids = [x for x in range(len(indexes))]
             indexes,_,dinamic_objects_this_floor = [ list(tuple) for tuple in zip(*sorted(zip(indexes,ids,dinamic_objects_this_floor))) ]
             
             one_time_event(0,self.width * self.height,indexes,dinamic_objects_this_floor,function_draw,self.draw_by_index)
-            ## One_time_event(): ## Basicamente faz o seguinde:
+            ## One_time_event(): ## Basicamente faz o seguinte de uma forma eficiente:
             ## z = 0
             ## for x in range(0, self.width * self.height):
             ##      if x in indexes:
@@ -63,18 +66,21 @@ class Room():
             leftover_objs.draw()
     
     def draw_by_index(self,index):
-        tile = self.tiles[self.floor_been_drawn][int(index/self.width)][index % self.width]
+        try:
+            tile = self.floors[self.floor_been_drawn][int(index/self.width)][index % self.width]
+        except:
+            tile = None
         if tile != None:
             tile.draw()
 
     def simple_draw(self):
-        for row in self.tiles[self.floor_been_drawn]:
+        for row in self.floors[self.floor_been_drawn]:
             for c in row:
                 c.draw()
     
     def get_tile(self,x,y,z):
         try:
-            return self.tiles[z][y][x]
+            return self.floors[z][y][x]
         except:
             return
     
@@ -105,7 +111,7 @@ class Room():
                 for b in range(0,3,2):
                     tile = self.get_tile((x + (a - 1)* vals[w][0]),(y +((b-1) * vals[w][1])),z-1)
                     if tile != None:
-                        if tile.type == None:
+                        if tile.type == '0':
                             tiles_under.append(tile)
                             
         ## Lembrando que o tamanho varia, depenendo de quantos tiles achar

@@ -4,7 +4,7 @@ from hud import *
 import sys
 
 class Player(): ## Não herda de spirte já que tem varios sprites dentro dele
-    def __init__(self, image_files, frames, total_durations, initial_frames, animation_names=[]):
+    def __init__(self, window, game_map, image_files, frames, total_durations, initial_frames, animation_names=[]):
 
         ### Validações
         if len(image_files) > len(frames):
@@ -26,8 +26,8 @@ class Player(): ## Não herda de spirte já que tem varios sprites dentro dele
         self.x = 0
         self.y = 0
         self.z = 1
-        self.map = 0
-        self.room = 0
+        self.map = game_map
+        self.room = [0,0]
         self.width = 0
         self.height = 0
         self.can_move = True
@@ -46,6 +46,8 @@ class Player(): ## Não herda de spirte já que tem varios sprites dentro dele
         self.hud.base_hp = self.base_hp
         self.hud.hp = self.hp
         self.hud.update_values()
+        ##
+        self.window = window
 
         ## Animações
         self.animations_names = animation_names ## Caso queria usar nome ao invés de index
@@ -59,7 +61,7 @@ class Player(): ## Não herda de spirte já que tem varios sprites dentro dele
             self.all_animations.append(sprite)
         ####
 
-    def cast(self,spell,key_settings,keyboard,window):
+    def cast(self,spell,key_settings,keyboard):
         if self.stun != None: ## Se estiver Stunado, retorna
             return
         if self.casting > 0: ## 0 significa fazendo nada, se !=, cast tem o valor da animação anterior.
@@ -70,7 +72,7 @@ class Player(): ## Não herda de spirte já que tem varios sprites dentro dele
             if sprite.get_curr_frame() == sprite.initial_frame:
                 self.casting = 0
                 self.can_move = True
-                self.cast_on_cooldown = window.time_elapsed() + self.cast_cooldown
+                self.cast_on_cooldown = self.window.time_elapsed() + self.cast_cooldown
 
                 orientation = self.index_to_name(self.curr_animation)[-1]
                 if orientation == 'l':
@@ -78,7 +80,7 @@ class Player(): ## Não herda de spirte já que tem varios sprites dentro dele
                 elif orientation == 'r':
                     self.set_animation(3)
 
-        elif self.cast_on_cooldown < window.time_elapsed():
+        elif self.cast_on_cooldown < self.window.time_elapsed():
             if keyboard.key_pressed(key_settings['magic']):
                 orientation = self.index_to_name(self.curr_animation)[-1]
                 if orientation == 'l':
@@ -92,8 +94,8 @@ class Player(): ## Não herda de spirte já que tem varios sprites dentro dele
                 else:
                     self.casting = self.name_to_index("strong_cast_l")
 
-    def take_damage(self,amount,damage_source,distance,window):
-        if self.stun != None or self.invunerable > window.time_elapsed():
+    def take_damage(self,amount,damage_source,distance):
+        if self.stun != None or self.invunerable > self.window.time_elapsed():
             return
 
         self.change_health(-amount) ## Vida perdida
@@ -103,7 +105,7 @@ class Player(): ## Não herda de spirte já que tem varios sprites dentro dele
 
         self.set_animation(8)
         self.all_animations[self.curr_animation].last_time = int(round(time.time() * 1000)) ## Resetar o ciclo da animação
-        self.invunerable = window.time_elapsed() + 20 ## Invulnerável por um tempo
+        self.invunerable = self.window.time_elapsed() + 20 ## Invulnerável por um tempo
 
         try:
             knoback_distance = [(self.x + self.sprite().width/2) - damage_source[0],(self.y + self.sprite().height/2) - damage_source[1]] ## [xi - xo, yi - yo]
@@ -117,15 +119,15 @@ class Player(): ## Não herda de spirte já que tem varios sprites dentro dele
         
             
 
-    def knockback(self,window):
+    def knockback(self):
         if self.stun != None:
             self.set_animation(8)
             self.update()
             ## self.axis = d/t * delta_t
             ## self.axis = pixeis/milesegundo * delta_t segundos
-            amount_x = self.sprite().total_frames * 1000 * self.knoback_distance[0]/self.sprite().total_duration * window.delta_time()
+            amount_x = self.sprite().total_frames * 1000 * self.knoback_distance[0]/self.sprite().total_duration * self.window.delta_time()
             self.move_x(amount_x)
-            amount_y = self.sprite().total_frames * 1000 * self.knoback_distance[1]/self.sprite().total_duration * window.delta_time()
+            amount_y = self.sprite().total_frames * 1000 * self.knoback_distance[1]/self.sprite().total_duration * self.window.delta_time()
             self.move_y(amount_y)
             self.can_move = False
 
@@ -140,7 +142,7 @@ class Player(): ## Não herda de spirte já que tem varios sprites dentro dele
         
 
     
-    def movement(self,keyboard,window,key_settings):
+    def movement(self,keyboard,key_settings):
         if not(self.can_move):
             return
         moving = False
@@ -148,19 +150,19 @@ class Player(): ## Não herda de spirte já que tem varios sprites dentro dele
 
         run = keyboard.key_pressed(key_settings["run"])
         if keyboard.key_pressed(key_settings['right']) and not keyboard.key_pressed(key_settings['left']):
-            self.move_x((self.speed + (run * self.run * self.speed * allowed_to_run)) * window.delta_time())
+            self.move_x((self.speed + (run * self.run * self.speed * allowed_to_run)) * self.window.delta_time())
             moving = True
             self.set_animation(3)
         elif keyboard.key_pressed(key_settings['left']) and not keyboard.key_pressed(key_settings['right']):
-            self.move_x( (self.speed + (run * self.run * self.speed * allowed_to_run)) * -window.delta_time())
+            self.move_x( (self.speed + (run * self.run * self.speed * allowed_to_run)) * -self.window.delta_time())
             moving = True
             self.set_animation(2)
         if keyboard.key_pressed(key_settings['down']) and not keyboard.key_pressed(key_settings['up']):
-            self.move_y((self.speed + (run * self.run * self.speed * allowed_to_run)) * window.delta_time())
+            self.move_y((self.speed + (run * self.run * self.speed * allowed_to_run)) * self.window.delta_time())
             moving = True
             self.set_animation(0)
         elif keyboard.key_pressed(key_settings['up']) and not keyboard.key_pressed(key_settings['down']):
-            self.move_y((self.speed + (run * self.run * self.speed * allowed_to_run)) * -window.delta_time())
+            self.move_y((self.speed + (run * self.run * self.speed * allowed_to_run)) * -self.window.delta_time())
             moving = True
             self.set_animation(1)
         
@@ -179,6 +181,8 @@ class Player(): ## Não herda de spirte já que tem varios sprites dentro dele
             sprite.draw()
             # self.hud.draw() ## Hud precisa ter draw() após player para sobre por ele
     
+
+    ## <Sprites>
     def draw_hud(self):
         self.hud.draw()
     
@@ -198,10 +202,12 @@ class Player(): ## Não herda de spirte já que tem varios sprites dentro dele
         for x in range(len(self.animations_names)):
             if self.animations_names[x].lower() == name.lower():
                 return x
+
     def index_to_name(self,index):
         return self.animations_names[index]
+    ## <Sprites/>
 
-
+    ## <Infos>
     def set_health(self,new_amount):
         self.hp = new_amount
         self.hud.hp = self.hp
@@ -217,32 +223,48 @@ class Player(): ## Não herda de spirte já que tem varios sprites dentro dele
             self.hud.hp = self.hp
         self.hud.base_hp = self.base_hp
         self.hud.update_values
+    
+    def change_base_health(self,delta_amount):
+        self.base_hp += delta_amount
+        if self.base_hp < self.hp:
+            self.hp = self.base_hp
+            self.hud.hp = self.hp
+        self.hud.base_hp = self.base_hp
+        self.hud.update_values
 
     def set_magic(self,magic_index):
         self.magic = magic_index
         self.hud.magic = magic_index
-
+    ## <Infos/>
+    
+    ## <Utility>
     def sprite(self):
         return self.all_animations[self.curr_animation]
 
     def center(self):
         return [self.x + self.sprite().width/2, self.y + 2*self.sprite().height/3]
+        
     def base(self):
         return [self.x + self.sprite().width/2, self.y + self.sprite().height]
+
     def tile_coords(self,room_width):
         x,y = self.center()
-        return [int(x/64),int(y/64) % room_width]
+        return [int(x/64),int(y/64) % self.get_room()]
+    ## <Utility/>
     
+    ## <Movement & Collision>
     def move_x(self,amount):
-        for block in self.room.get_surrodings(int(self.x/64),int(self.y/64) % self.room.width,self.z):
+        for block in self.get_room().get_surrodings(int(self.x/64),int(self.y/64) % self.get_room().width,self.z):
             if self.collision_with_solids(block):
                 self.correct_coord(block)
+        self.change_of_room()
         self.x += amount
         
     def move_y(self,amount):
-        for block in self.room.get_surrodings(int(self.x/64),int(self.y/64) % self.room.width,self.z):
+        for block in self.get_room().get_surrodings(int(self.x/64),int(self.y/64) % self.get_room().width,self.z):
             if self.collision_with_solids(block):
                 self.correct_coord(block)
+        self.change_of_room()
         self.y += amount
 
     def collision_with_solids(self,solid_block):
@@ -276,3 +298,41 @@ class Player(): ## Não herda de spirte já que tem varios sprites dentro dele
             self.x += smallest_not_abs
         else:
             self.y += smallest_not_abs
+    ## <Movement & Collision/>
+
+    ## <Map & Room>
+    def get_room(self):
+        return self.map.get_room(self.room)
+    
+    def change_of_room(self):
+        off_set = 0
+        if self.x + self.sprite().width < 0 - off_set:
+            new_room = self.map.room_left(self.room)
+            if new_room != None:
+                self.room = new_room
+                self.x = self.window.width
+                return True
+
+        elif self.x > self.window.width + off_set:
+            new_room = self.map.room_right(self.room)
+            if new_room != None:
+                self.room = new_room
+                self.x = 0 - self.sprite().width
+                return True
+        
+        elif self.y + self.sprite().height < 0 - off_set:
+            new_room = self.map.room_above(self.room)
+            if new_room != None:
+                self.room = new_room
+                self.y = self.window.height
+                return True
+
+        elif self.y > self.window.height + off_set:
+            new_room = self.map.room_bellow(self.room)
+            if new_room != None:
+                self.room = new_room
+                self.y = 0 - self.sprite().height
+                return True
+
+        return False
+    ## <Map & Room/>
