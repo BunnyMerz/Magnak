@@ -30,3 +30,9 @@
 [   ] - Enemies
 	[   ] - Classes de cada inimigo
 		[   ] - Slime
+			[ x ] - Basic Functions
+			[   ] - Animations
+			[   ] - Death
+			[   ] - Reset
+			[   ] - AI
+			[   ] - Spell

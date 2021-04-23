@@ -3,7 +3,7 @@ from PPlay.sprite import *
 from player import *
 from hud import *
 from shards import *
-from base_enemy import *
+from enemies import *
 from tile import *
 from room import *
 from game_map import *
@@ -32,7 +32,7 @@ config= {
 
 
 # window = Window(864, 576)
-window = Window(972,648)
+window = Window(1024,720)
 keyboard = window.get_keyboard()
 clock = pygame.time.Clock()
 
@@ -44,8 +44,8 @@ room2 = create_room('room2')
 room3 = create_room('room3')
 room4 = create_room('room4')
 map_of_rooms = [
-    [room1,room2,0],
-    [room3,room4,0]
+    [room1,room2],
+    [room3,room4]
     ]
 game_map_obj = GameMap(map_of_rooms)
 
@@ -67,8 +67,8 @@ player_animations_names = [
     ]
 #Player([Animações],[frames],[durations],[frames_iniciais],[Names]=[])
 player = Player(window,game_map_obj,player_animations,[3,3,3,3,4,4,3,3,3],[400,400,400,400,900,900,2000,2000,525],[1,1,1,1,0,0,0,0,0],player_animations_names)
-player.x = 400
-player.y = 200
+player.x = 64 * 2
+player.y = window.height - 64 * 3
 
 player.set_base_health(10)
 player.set_health(10)
@@ -78,29 +78,48 @@ player.hud.x = 10
 player.hud.y = 10
 player.hud.align()
 
+
 #Variaveis das habilidades
-# essence_fire = Shard(1,300,300)
-# essence_ice = Shard(2,400,400)
-# essence_lightning = Shard(3,500,200)
+essence_fire = Shard(1,300,300)
+essence_ice = Shard(2,400,400)
+essence_lightning = Shard(3,500,200)
 
-# shards_sprites = [essence_fire,essence_ice,essence_lightning]
+shards_sprites = [essence_fire,essence_ice,essence_lightning]
 
-# enemies = []
-# for x in range(4):
-#     enemy = BaseEnemy('assets/enemies/Lekro.png')
-#     enemy.x = random.randint(30,300)
-#     enemy.y = random.randint(100,300)
-#     enemies.append(enemy)
+enemies = []
+for x in range(4):
+    # window, stats, room, image_files, frames, total_durations, initial_frames, animation_names,x,y,z
+    enemy = Lekro(window,{'base_hp':10},map_of_rooms[0][0],['assets/enemies/Lekro-jump.png'],[20],[600],[0])
+    enemy.x = random.randint(200,500)
+    enemy.y = random.randint(100,500)
+    enemy.update_all_animations_coords()
+    enemies.append(enemy)
 
-# room.enemies = enemies
+map_of_rooms[0][0].enemies = enemies
 
 while(True):
     player.knockback() ## Applying knockback if needed
     player.cast('',config['controlls'],keyboard) ## Casting a spell if needed
 
     for enemy in player.get_room().enemies: ## Collision with enemies
-        if player.sprite().collided(enemy):
-            player.take_damage(1,[enemy.x + enemy.width, enemy.y + enemy.height],100)
+        if enemy.z == player.z:
+            if player.sprite().collided(enemy.sprite()):
+                player.take_damage(1,[enemy.x + enemy.sprite().width/2, enemy.y + enemy.sprite().height/2],100)
+                enemy.take_damage(1,[player.x + player.sprite().width/2, player.y + player.sprite().height/2],100)
+        if enemy.sprite().curr_frame > 17 or  enemy.sprite().curr_frame == 0:
+            if random.randint(1,20) == 1:
+                enemy.vector = [random.randint(0,300) * (random.randint(0,2) - 1),random.randint(0,200) * (random.randint(0,2) - 1)]
+                if enemy.vector != [0,0]:
+                    enemy.sprite().curr_frame = 1
+            else:
+                enemy.vector = [0,0]
+        elif enemy.sprite().curr_frame > 2:
+            enemy.move_x(enemy.vector[0])
+            enemy.move_y(enemy.vector[1])
+        enemy.knockback()
+        if enemy.sprite().curr_frame != 0:
+            enemy.update()
+
     
     for shard in player.get_room().shards:
         if shard.collided(player.sprite()):
@@ -115,11 +134,12 @@ while(True):
 
 
     game_map_obj.draw(player)
+
     # room.draw(player,shards_sprites) ## Player,room,enemies
     
-    player.draw_hud() ## Hud
+    # player.draw_hud() ## Hud
 
     # map_of_rooms[0][0].floors[0][3][4].draw()
     ##
-    clock.tick(120) ## Framerate
+    # clock.tick(120) ## Framerate
     window.update()

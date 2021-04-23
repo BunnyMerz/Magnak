@@ -5,7 +5,7 @@ def function_draw(obj):
 
 class Room():
     def __init__(self,floors=[],solids=[],enemies=[],x=0,y=0):
-        self.x = x ## Quantos tiles eles está de distância do (0,0). Recomendado 1 ou 2 á esquerda e dois a cima. (-2,-2)
+        self.x = x ## Quantos tiles eles está de distância do (0,0).
         self.y = y
         self.floors = floors
         self.enemies = enemies
@@ -52,6 +52,13 @@ class Room():
             ids = [x for x in range(len(indexes))]
             indexes,_,dinamic_objects_this_floor = [ list(tuple) for tuple in zip(*sorted(zip(indexes,ids,dinamic_objects_this_floor))) ]
             
+            z = len(indexes) - 1
+            b = self.width * self.height
+            while(indexes[z] > b and z != 0):
+                z -= 1
+            z += 1
+            indexes,dinamic_objects_this_floor,aside_objs = indexes[:z],dinamic_objects_this_floor[:z],dinamic_objects_this_floor[z:]
+
             one_time_event(0,self.width * self.height,indexes,dinamic_objects_this_floor,function_draw,self.draw_by_index)
             ## One_time_event(): ## Basicamente faz o seguinte de uma forma eficiente:
             ## z = 0
@@ -61,6 +68,10 @@ class Room():
             ##          z += 1
             ##      else:
             ##          self.draw_by_index(x)
+
+            ## Objs fora do loop de one_time_event()
+            for objs in aside_objs:
+                objs.draw()
 
         for leftover_objs in all_dinamic_objects:
             leftover_objs.draw()
@@ -79,10 +90,12 @@ class Room():
                 c.draw()
     
     def get_tile(self,x,y,z):
+        if x < 0 or y < 0 or z < 0:
+            return None
         try:
             return self.floors[z][y][x]
         except:
-            return
+            return None
     
     def get_solids(self,z,indexes):
         solids = []
@@ -95,7 +108,7 @@ class Room():
         return solids
     
     def get_surrodings(self,x,y,z):
-        """Returns a 3x3 of tiles of solids in the same z and voids in z-1"""
+        """Returns a 3x3 of tiles of solids in the same z and voids in z-1 unless stairs on z-2 or z"""
         ## Pegar 9 tiles solidos em z
         solid_indexes = []
         vals = [(1,1),(0,1),(1,0),(0,0)]
@@ -110,8 +123,16 @@ class Room():
             for a in range(0,3,2):
                 for b in range(0,3,2):
                     tile = self.get_tile((x + (a - 1)* vals[w][0]),(y +((b-1) * vals[w][1])),z-1)
+                    stairs_below = self.get_tile((x + (a - 1)* vals[w][0]),(y +((b-1) * vals[w][1])),z-2)
+                    stairs_above = self.get_tile((x + (a - 1)* vals[w][0]),(y +((b-1) * vals[w][1])),z)
+                    if stairs_below != None:
+                        if stairs_below.type in ['v','^','>','<']:
+                            break
+                    if stairs_above != None:
+                        if stairs_above.type in ['v','^','>','<']:
+                            break
                     if tile != None:
-                        if tile.type == '0':
+                        if tile.type == '0' or tile.type in ['4','5','6','-','¬','.|','br','_','L','tp','|.',"\\",'/']:
                             tiles_under.append(tile)
                             
         ## Lembrando que o tamanho varia, depenendo de quantos tiles achar

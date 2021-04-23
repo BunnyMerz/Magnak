@@ -25,11 +25,11 @@ class Player(): ## Não herda de spirte já que tem varios sprites dentro dele
         ## Infos e permissões
         self.x = 0
         self.y = 0
-        self.z = 1
+        self.z = 3
         self.map = game_map
         self.room = [0,0]
-        self.width = 0
-        self.height = 0
+        # self.width = 0
+        # self.height = 0
         self.can_move = True
         self.allowed_to_run = True
         self.hide_sprite = False
@@ -125,9 +125,9 @@ class Player(): ## Não herda de spirte já que tem varios sprites dentro dele
             self.update()
             ## self.axis = d/t * delta_t
             ## self.axis = pixeis/milesegundo * delta_t segundos
-            amount_x = self.sprite().total_frames * 1000 * self.knoback_distance[0]/self.sprite().total_duration * self.window.delta_time()
+            amount_x = self.sprite().total_frames * 1000 * self.knoback_distance[0]/self.sprite().total_duration
             self.move_x(amount_x)
-            amount_y = self.sprite().total_frames * 1000 * self.knoback_distance[1]/self.sprite().total_duration * self.window.delta_time()
+            amount_y = self.sprite().total_frames * 1000 * self.knoback_distance[1]/self.sprite().total_duration
             self.move_y(amount_y)
             self.can_move = False
 
@@ -150,19 +150,19 @@ class Player(): ## Não herda de spirte já que tem varios sprites dentro dele
 
         run = keyboard.key_pressed(key_settings["run"])
         if keyboard.key_pressed(key_settings['right']) and not keyboard.key_pressed(key_settings['left']):
-            self.move_x((self.speed + (run * self.run * self.speed * allowed_to_run)) * self.window.delta_time())
+            self.move_x((self.speed + (run * self.run * self.speed * allowed_to_run)))
             moving = True
             self.set_animation(3)
         elif keyboard.key_pressed(key_settings['left']) and not keyboard.key_pressed(key_settings['right']):
-            self.move_x( (self.speed + (run * self.run * self.speed * allowed_to_run)) * -self.window.delta_time())
+            self.move_x( (self.speed + (run * self.run * self.speed * allowed_to_run)) * -1)
             moving = True
             self.set_animation(2)
         if keyboard.key_pressed(key_settings['down']) and not keyboard.key_pressed(key_settings['up']):
-            self.move_y((self.speed + (run * self.run * self.speed * allowed_to_run)) * self.window.delta_time())
+            self.move_y((self.speed + (run * self.run * self.speed * allowed_to_run)))
             moving = True
             self.set_animation(0)
         elif keyboard.key_pressed(key_settings['up']) and not keyboard.key_pressed(key_settings['down']):
-            self.move_y((self.speed + (run * self.run * self.speed * allowed_to_run)) * -self.window.delta_time())
+            self.move_y((self.speed + (run * self.run * self.speed * allowed_to_run)) * -1)
             moving = True
             self.set_animation(1)
         
@@ -254,18 +254,33 @@ class Player(): ## Não herda de spirte já que tem varios sprites dentro dele
     
     ## <Movement & Collision>
     def move_x(self,amount):
-        for block in self.get_room().get_surrodings(int(self.x/64),int(self.y/64) % self.get_room().width,self.z):
+        x,y = self.base()
+        self.change_height()
+        for block in self.get_room().get_surrodings(int(x/64),int(y/64) % self.get_room().width,self.z):
             if self.collision_with_solids(block):
                 self.correct_coord(block)
         self.change_of_room()
-        self.x += amount
+        self.x += amount * self.window.delta_time()
         
     def move_y(self,amount):
+        self.change_height()
         for block in self.get_room().get_surrodings(int(self.x/64),int(self.y/64) % self.get_room().width,self.z):
             if self.collision_with_solids(block):
                 self.correct_coord(block)
         self.change_of_room()
-        self.y += amount
+        self.y += amount * self.window.delta_time()
+    
+    def change_height(self):
+        height = [-2,0]
+        z_delta = [-1,1]
+        for x in range(len(height)):
+            stair = self.get_room().get_tile(int(self.x/64),int(self.y/64) % self.get_room().width,self.z + height[x])
+            if stair != None:
+                if stair.type in ['v','>','<','^']:
+                    self.z += z_delta[x]
+                    return
+        
+
 
     def collision_with_solids(self,solid_block):
         min1_x = self.x

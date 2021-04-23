@@ -5,6 +5,7 @@ from game_map import *
 def create_room(txt_name,x=0,y=0):
     initial_x = x
     initial_y = y
+    z = 0
     tile_size = 64
     x = x*tile_size
     y = y*tile_size
@@ -24,11 +25,12 @@ def create_room(txt_name,x=0,y=0):
                 # y += 0.4 * tile_size
                 x_off = x
                 y_off = y
+                z += 1
             else:
                 floor_row = []
                 x_off = x
                 for col in row.strip('\n').split(' '):
-                    tile = Tile(col)
+                    tile = Tile(col,z=z)
                     if tile.solid:
                         floor_solids.append(tile)
                     floor_row.append(tile)
