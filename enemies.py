@@ -59,9 +59,9 @@ class BaseEnemy():
             # self.update()
             #//# self.axis = d/t * delta_t                         #//#
             #//# self.axis = pixeis/milesegundo * delta_t segundos #//#
-            amount_x = 1000 * self.knoback_distance[0]/self.stun_base_time * self.window.delta_time()
+            amount_x = 1000 * self.knoback_distance[0]/self.stun_base_time
             self.move_x(amount_x,1)
-            amount_y =  1000 * self.knoback_distance[1]/self.stun_base_time * self.window.delta_time()
+            amount_y =  1000 * self.knoback_distance[1]/self.stun_base_time
             self.move_y(amount_y,1)
             self.update_all_animations_coords()
     

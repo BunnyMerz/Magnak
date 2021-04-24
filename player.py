@@ -2,6 +2,7 @@ from PPlay.sprite import *
 import pygame
 from hud import *
 import sys
+from isur import *
 
 class Player(): ## Não herda de spirte já que tem varios sprites dentro dele
     def __init__(self, window, game_map, image_files, frames, total_durations, initial_frames, animation_names=[]):
@@ -37,6 +38,8 @@ class Player(): ## Não herda de spirte já que tem varios sprites dentro dele
         self.casting = 0
         self.cast_cooldown = 500
         self.cast_on_cooldown = 0
+        self.magic_sprites = []
+        self.last_oriented = [0,-1]
         ##
         self.stun = None
         self.knoback_distance = [0,0]
@@ -70,6 +73,9 @@ class Player(): ## Não herda de spirte já que tem varios sprites dentro dele
             self.update()
             sprite = self.all_animations[self.curr_animation]
             if sprite.get_curr_frame() == sprite.initial_frame:
+                self.magic_sprites.append(Isur(self.window,self.last_oriented.copy(),self.x + self.sprite().width/2,self.y + self.sprite().width/2,self.z))
+                self.magic_sprites[-1].y -= self.magic_sprites[-1].sprite.height/2
+                self.magic_sprites[-1].x -= self.magic_sprites[-1].sprite.width/2
                 self.casting = 0
                 self.can_move = True
                 self.cast_on_cooldown = self.window.time_elapsed() + self.cast_cooldown
@@ -145,6 +151,7 @@ class Player(): ## Não herda de spirte já que tem varios sprites dentro dele
     def movement(self,keyboard,key_settings):
         if not(self.can_move):
             return
+        self.last_oriented = [0,0]
         moving = False
         allowed_to_run = self.allowed_to_run
 
@@ -153,23 +160,31 @@ class Player(): ## Não herda de spirte já que tem varios sprites dentro dele
             self.move_x((self.speed + (run * self.run * self.speed * allowed_to_run)))
             moving = True
             self.set_animation(3)
+            self.last_oriented[0] = 1
         elif keyboard.key_pressed(key_settings['left']) and not keyboard.key_pressed(key_settings['right']):
             self.move_x( (self.speed + (run * self.run * self.speed * allowed_to_run)) * -1)
             moving = True
             self.set_animation(2)
+            self.last_oriented[0] = -1
         if keyboard.key_pressed(key_settings['down']) and not keyboard.key_pressed(key_settings['up']):
             self.move_y((self.speed + (run * self.run * self.speed * allowed_to_run)))
             moving = True
             self.set_animation(0)
+            self.last_oriented[1] = 1
         elif keyboard.key_pressed(key_settings['up']) and not keyboard.key_pressed(key_settings['down']):
             self.move_y((self.speed + (run * self.run * self.speed * allowed_to_run)) * -1)
             moving = True
             self.set_animation(1)
+            self.last_oriented[1] = -1
         
         if not(moving):
             self.all_animations[self.curr_animation].curr_frame = 0
         else:
             self.update()
+        
+        if self.last_oriented == [0,0]:
+            d = self.index_to_name(self.curr_animation)[-1]
+            self.last_oriented = [int(d == 'r') + (int(d == 'l') * -1),int(d == 'u') * -1 + int(d == 'd')]
         
     def draw(self):
         if self.hide_sprite:

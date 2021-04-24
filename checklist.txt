@@ -20,7 +20,7 @@
 	[ x ] - Faster and more efficient
 	[ x ] - Floor (Only able to walk on existing floor)
 	[   ] - Exceptions (Like gates, or small custom hitbox assets)
-	[   ] - Stairs
+	[ x ] - Stairs
 	[ x ] - Room generator functon trought .txt
 
 [   ] - Map
@@ -28,11 +28,16 @@
 	[   ] - Map generator function trought .txt
 
 [   ] - Enemies
+	[ \ ] - Classe Base
 	[   ] - Classes de cada inimigo
-		[   ] - Slime
+		[   ] - Lekro
 			[ x ] - Basic Functions
 			[   ] - Animations
-			[   ] - Death
+				[   ] - Death
+				[ x ] - Movement
+				[   ] - Attacking
 			[   ] - Reset
 			[   ] - AI
 			[   ] - Spell
+		[   ] - Pyrko
+			# Ainda nada iniciado

@@ -10,6 +10,7 @@ from game_map import *
 from create_room import *
 import random
 import pygame
+from isur import *
 
 assets = {
     "hud":'assets/hud/',
@@ -133,7 +134,7 @@ while(True):
     # bg.draw()
 
 
-    game_map_obj.draw(player)
+    game_map_obj.draw(player,player.magic_sprites)
 
     # room.draw(player,shards_sprites) ## Player,room,enemies
     
