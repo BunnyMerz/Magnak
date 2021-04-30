@@ -1,4 +1,6 @@
 from PPlay.sprite import *
+import random
+from pit import pitagoras
 
 class BaseEnemy():
     def __init__(self, window, stats, room, image_files, frames, total_durations, initial_frames, animation_names=[],x=0,y=0,z=1):
@@ -10,7 +12,7 @@ class BaseEnemy():
         self.z = z
         self.all_animations = []
         self.curr_animation = 0
-        self.vector = [0,0]
+        self.animations_names = animation_names
 
         for x in range(len(image_files)):
             sprite = Sprite(image_files[x],frames[x])
@@ -25,7 +27,8 @@ class BaseEnemy():
         self.hp = stats['base_hp']
 
         self.stun_time = 0
-        self.stun_base_time = 400
+        self.previously_stunned = 0
+        self.stun_base_time = self.all_animations[self.name_to_index("damage")].total_duration
         self.knoback_distance = [0,0]
         self.knockback_resistance = 0
 
@@ -37,7 +40,8 @@ class BaseEnemy():
 
         self.change_health(-amount) ## Vida perdida
         self.stun_time = self.window.time_elapsed() + self.stun_base_time
-        self.set_animation(0)
+        self.previously_stunned = 1
+        self.set_animation(self.name_to_index("damage"))
         self.sprite().last_time = int(round(time.time() * 1000)) ## Resetar o ciclo da animação
         self.invunerable = self.window.time_elapsed() + 20 ## Invulnerável por um tempo
 
@@ -64,6 +68,9 @@ class BaseEnemy():
             amount_y =  1000 * self.knoback_distance[1]/self.stun_base_time
             self.move_y(amount_y,1)
             self.update_all_animations_coords()
+        elif self.previously_stunned == 1:
+            self.set_animation(self.name_to_index("base"))
+            self.previously_stunned = 0
     
     
     def move_x(self,amount,knockback_movement=0):
@@ -149,6 +156,11 @@ class BaseEnemy():
 
     def set_animation(self,index):
         self.curr_animation = index
+
+    def name_to_index(self,name):
+        for x in range(len(self.animations_names)):
+            if self.animations_names[x].lower() == name.lower():
+                return x
     
     def sprite(self):
         return self.all_animations[self.curr_animation]
@@ -168,4 +180,49 @@ class BaseEnemy():
 class Lekro(BaseEnemy):
     def __init__(self, window, stats, room, image_files, frames, total_durations, initial_frames, animation_names=[],x=0,y=0,z=1):
         BaseEnemy.__init__(self, window, stats, room, image_files, frames, total_durations, initial_frames, animation_names,x,y,z)
-        
+        self.movement_frequency = 120 ## The higher, the less likely to move. 1 == 100% or 1/x%
+        self.jump_distance = {'min':0,'max':100}
+        self.vector = [0,0]
+        self.next_vector = [0,0]
+
+    def movement(self):
+        if self.sprite().curr_frame > 17 or  self.sprite().curr_frame == 0:
+            if self.next_vector != None:
+                self.vector = self.next_vector
+                self.next_vector = None
+                self.sprite().curr_frame = 1
+            else:
+                if random.randint(1,self.movement_frequency) == 1:
+                    self.vector = [random.randint(self.jump_distance['min'],self.jump_distance['max']) * (random.randint(0,2) - 1),random.randint(self.jump_distance['min'],self.jump_distance['max']) * (random.randint(0,2) - 1)]
+                    if self.vector != [0,0]:
+                        self.sprite().curr_frame = 1
+                else:
+                    self.vector = [0,0]
+        elif self.sprite().curr_frame > 2:
+            self.move_x(self.vector[0])
+            self.move_y(self.vector[1])
+        self.knockback()
+        if self.sprite().curr_frame != 0:
+            self.update()
+    
+    def death(self):
+        pass
+    
+    def behaviour(self,player):
+        distance = pitagoras([self.x,self.y],[player.x,player.y])
+        if distance > 300:
+            self.movement_frequency = 200
+            self.jump_distance = {'min':0,'max':100}
+        else:
+            self.movement_frequency = 140
+            self.jump_distance = {'min':30,'max':200}
+
+            x_axis = (self.x - player.x) * -1
+            y_axis = (self.y - player.y) * -1
+
+            if self.jump_distance['max'] < abs(x_axis):
+                x_axis = self.jump_distance['max'] * ((x_axis < 0) * -2 + 1)
+            if self.jump_distance['max'] < abs(y_axis):
+                y_axis = self.jump_distance['max'] * ((y_axis < 0) * -2 + 1)
+
+            self.next_vector = [x_axis, y_axis]

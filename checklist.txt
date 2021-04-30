@@ -6,8 +6,8 @@
 	[   ] - Electro
 		[   ] - Weak
 		[   ] - Strong
-	[   ] - Freeze
-		[   ] - Weak
+	[ \ ] - Freeze
+		[ \ ] - Weak
 		[   ] - Strong
 
 [ x ] - Tiles
@@ -41,3 +41,6 @@
 			[   ] - Spell
 		[   ] - Pyrko
 			# Ainda nada iniciado
+
+[   ] - Tela inicial
+[   ] - Game Over
