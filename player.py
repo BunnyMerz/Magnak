@@ -255,6 +255,14 @@ class Player(): ## Não herda de spirte já que tem varios sprites dentro dele
     ## <Utility>
     def sprite(self):
         return self.all_animations[self.curr_animation]
+    
+    def cropped_frame(self):
+        sprite = self.sprite()
+        crop_rect = pygame.Rect((sprite.curr_frame * sprite.width,0),(sprite.width,sprite.height))
+        surface = pygame.Surface((sprite.width,sprite.height))
+        surface.blit(sprite.image,crop_rect)
+        return surface
+
 
     def center(self):
         return [self.x + self.sprite().width/2, self.y + 2*self.sprite().height/3]
@@ -295,7 +303,10 @@ class Player(): ## Não herda de spirte já que tem varios sprites dentro dele
                     self.z += z_delta[x]
                     return
         
+    def pixel_collision(self, target_rect, target_surface):
+        import unbounded_collision
 
+        return unbounded_collision.UnboundedCollision.pixel_collision(self.sprite().rect, target_rect, self.cropped_frame(), target_surface)
 
     def collision_with_solids(self,solid_block):
         min1_x = self.x

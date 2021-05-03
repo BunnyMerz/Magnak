@@ -99,7 +99,7 @@ for x in range(4):
     enemy.update_all_animations_coords()
     enemies.append(enemy)
 
-map_of_rooms[0][0].enemies = enemies
+# map_of_rooms[0][0].enemies = enemies
 map_of_rooms[0][0].shards = shards_sprites
 
 enemy_movement_frequency = 100
@@ -140,7 +140,8 @@ while(True):
     
     player.draw_hud() ## Hud
     if player.sprite().collided(ta):
-        print("a")
+        if player.pixel_collision(ta.rect, ta.image):
+            print("a")
     ta.draw()
 
     ##

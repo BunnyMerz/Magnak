@@ -12,5 +12,9 @@ class LekroSpell(GameImage):
         GameImage.__init__(self,'assets/magic/thunder.png')
         self.x = x
         self.y = y
-        self.image = pygame.transform.rotate(self.image, 90)
+
+        self.image = pygame.transform.rotate(self.image, 60)
         self.rect = self.image.get_rect(center = self.image.get_rect(center = (x, y)).center)
+        # self.image.fill((0,0,0))
+        self.width = self.rect.width
+        self.height = self.rect.height
