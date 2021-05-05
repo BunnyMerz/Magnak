@@ -28,9 +28,8 @@ class Player(): ## Não herda de spirte já que tem varios sprites dentro dele
         self.y = 0
         self.z = 3
         self.map = game_map
-        self.room = [0,0]
-        # self.width = 0
-        # self.height = 0
+        self.room = [0,0] 
+
         self.can_move = True
         self.allowed_to_run = True
         self.hide_sprite = False
@@ -262,7 +261,6 @@ class Player(): ## Não herda de spirte já que tem varios sprites dentro dele
         surface = pygame.Surface((sprite.width,sprite.height))
         surface.blit(sprite.image,crop_rect)
         return surface
-
 
     def center(self):
         return [self.x + self.sprite().width/2, self.y + 2*self.sprite().height/3]

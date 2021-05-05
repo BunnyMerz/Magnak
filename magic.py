@@ -1,20 +1,76 @@
 from PPlay.sprite import *
 from PPlay.gameimage import *
+from math import atan2
+from math import degrees
+from pit import pitagoras
+from pit import pitagoras_class
 
-class Magic(Sprite):
-    def __init__(self,image,damage,knockback_multiplier=1):
-        Sprite.__init__()
-        self.damage = damage
-        self.knockback_multiplier = knockback_multiplier
+class LekroSpell():
+    def __init__(self,lekros,window):
+        self.sprite_obj = Sprite('assets/magic/thunder.png')
+        self.lekros = lekros
+        self.window = window
 
-class LekroSpell(GameImage):
-    def __init__(self,x,y,distance,vector):
-        GameImage.__init__(self,'assets/magic/thunder.png')
-        self.x = x
-        self.y = y
+        self.width = 0
+        self.height = 0
 
-        self.image = pygame.transform.rotate(self.image, 60)
-        self.rect = self.image.get_rect(center = self.image.get_rect(center = (x, y)).center)
-        # self.image.fill((0,0,0))
-        self.width = self.rect.width
-        self.height = self.rect.height
+        self.off_set = 0
+
+        self.life_span = 1000 + self.window.time_elapsed()
+
+    def sprite(self):
+        return self.sprite_obj
+
+    def draw(self):
+        if self.life_span < self.window.time_elapsed() or pitagoras_class(self.lekros[0],self.lekros[1]) > 300:
+            self.disapear()
+            return
+        surface,angle = self.rotate()
+        x,y = self.lekros[0].x + self.lekros[0].sprite().width/2, self.lekros[0].y + self.lekros[0].sprite().height*3/4
+
+        angle += 180
+        if 0 <= angle < 90: 
+            y -= self.height
+        elif 90 <= angle < 180:
+            x -= self.width
+            y -= self.height
+        elif 180 <= angle < 270:
+            x -= self.width
+
+        self.window.get_screen().blit(surface, (x,y))
+
+    
+    def update(self):
+        self.sprite().update()
+
+    def rotate(self):
+        self.off_set += 3
+        delta_x = self.lekros[0].x - self.lekros[1].x
+        delta_y = self.lekros[1].y - self.lekros[0].y
+
+        angle = degrees(atan2(delta_y, delta_x))
+        hip = ((delta_x**2)+(delta_y)**2)**(1/2)
+
+        if hip < 1:
+            hip = 1
+        if hip > self.sprite().width/2:
+            hip = self.sprite().width/2
+        if self.off_set > self.sprite().width/2:
+            self.off_set = 0
+
+        surface = pygame.Surface((hip,self.sprite().height), pygame.SRCALPHA, 32)
+        surface.convert_alpha()
+        surface.blit(self.sprite().image,(-self.off_set,0))
+        surface = pygame.transform.rotate(surface, angle)
+
+        self.width = surface.get_rect().width
+        self.height = surface.get_rect().height
+
+        return surface,angle
+
+    def disapear(self):
+        for lekro in self.lekros:
+            for x in range(len(lekro.attack_sprites)):
+                if lekro.attack_sprites[x] == self:
+                    lekro.attack_sprites.pop(x)
+                    break

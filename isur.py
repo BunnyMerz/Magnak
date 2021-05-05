@@ -1,5 +1,4 @@
 from PPlay.sprite import *
-from magic import Magic
 
 directions = {
     'x':{
