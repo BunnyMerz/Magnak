@@ -154,7 +154,12 @@ class Entity():
 
     def change_health(self,delta_amount):
         self.hp += delta_amount
-        ## Death()
+        if self.hp <= 0:
+            self.death()
+    
+    def death(self):
+        pass
+        ## Should be re-defined inside each individual entity
     
     def draw(self):
         sprite = self.all_animations[self.curr_animation]

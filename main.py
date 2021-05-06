@@ -55,7 +55,7 @@ def game():
     clock = pygame.time.Clock()
 
     ## Background diminuido para a janela não ficar muito grande
-    bg = Sprite( assets["menu"] + 'fundo_menu_magnak-0.9.jpg')
+    # bg = Sprite( assets["menu"] + 'fundo_menu_magnak-0.9.jpg')
 
     room1 = create_room('room1')
     room2 = create_room('room2')
@@ -74,14 +74,14 @@ def game():
         walking + 'left-0.6.png',walking + 'right-0.6.png',
         assets["player"] + 'casting_weak_left-0.6.png',assets["player"] + 'casting_weak_right-0.6.png',
         assets["player"] + 'casting_strong_left-0.6.png',assets["player"] + 'casting_strong_right-0.6.png',
-        assets["player"] + 'damage-0.6.png'
+        assets["player"] + 'damage-0.6.png', assets["player"] + 'death-0.6.png'
         ]
     player_animations_names = [
         'walk_d','walk_u',
         'walk_l','walk_r',
         "weak_cast_l","weak_cast_r",
         "strong_cast_l","strong_cast_r",
-        "damage_a"
+        "damage_a",'death'
         ]
 
     animation_tree = {
@@ -109,12 +109,12 @@ def game():
             }
     }
     #Player([Animações],[frames],[durations],[frames_iniciais],[Names]=[])
-    player = Player(window,game_map_obj,player_animations,[3,3,3,3,4,4,3,3,3],[400,400,400,400,900,900,2000,2000,525],[1,1,1,1,0,0,0,0,0],player_animations_names)
+    player = Player(window,game_map_obj,player_animations,[3,3,3,3,4,4,3,3,3,3],[400,400,400,400,900,900,2000,2000,525,2000],[1,1,1,1,0,0,0,0,0,0],player_animations_names)
     player.x = 64 * 2
     player.y = window.height - 64 * 3
 
     player.set_base_health(10)
-    player.set_health(10)
+    player.set_health(3)
     player.hud.update_values()
 
     player.hud.x = 10
@@ -157,78 +157,107 @@ def game():
     an_names = ['base','damage']
     animations_lek = ['assets/enemies/Lekro-jump.png','assets/enemies/Lekro-damage.png']
     enemies = []
-    for _ in range(5):
+    for _ in range(2):
         # window, stats, room, image_files, frames, total_durations, initial_frames, animation_names,x,y,z
         enemy = Lekro(window,{'base_hp':10},map_of_rooms[0][0],animations_lek,frames=[20,6],total_durations=[600,400],initial_frames=[0,0],animation_names=an_names,animation_tree=lekro_tree)
         enemy.x = random.randint(200,500)
         enemy.y = random.randint(100,500)
+        enemy.z = 1
         enemy.update_all_animations_coords()
         enemies.append(enemy)
 
     map_of_rooms[0][0].enemies = enemies
-    map_of_rooms[0][0].shards = shards_sprites
+    map_of_rooms[1][0].shards = shards_sprites
 
 
     menu_dir = "assets/menu/"
 
     buttons = {
-    (0,0):[menu_dir + 'continue.png', menu_dir + 'new_game.png', menu_dir + 'continue.png', menu_dir + 'configuration.png', menu_dir + 'leave.png'],
-    (3,1):[menu_dir + 'video.png', menu_dir + 'audio.png', menu_dir + 'controls.png'],
-    (2,1):[menu_dir + 'continue.png',menu_dir + 'continue.png',menu_dir + 'continue.png'],
-    (1,3):[menu_dir + 'continue.png',menu_dir + 'continue.png']
+    (0,0):[menu_dir + 'continue.png', menu_dir + 'new_game.png', menu_dir + 'configuration.png', menu_dir + 'leave.png'],
+    (2,1):[menu_dir + 'video.png', menu_dir + 'audio.png', menu_dir + 'controls.png']
     }
 
-    main_menu = Menu('assets/menu/fundo_menu_magnak.jpg',buttons,window,side_space=30,line_space=5,x=window.width - 10,y=200)
+    menu_bg = pygame.image.load('assets/menu/main_menu_bg.jpg')
+    menu_bg = pygame.transform.scale(menu_bg, (window.width, window.height))
+    main_menu = Menu(menu_bg,buttons,window,side_space=30,line_space=5,x=window.width - 10,y=200)
 
     main_menu.options[(0,0)][0].grey = True
+    main_menu.options[(2,1)][0].grey = True
+    main_menu.options[(2,1)][1].grey = True
+    main_menu.options[(2,1)][2].grey = True
 
-    ###############
-    main_menu.draw()
-    ###############
-
-    ta = GameImage('assets/magic/thunder.png')
-
+    game_state = 'Menu'
     while(True):
-        player.knockback() ## Applying knockback if needed
-        player.cast('',config['controlls'],keyboard) ## Casting a spell if needed
+        ###############
+        if game_state == 'Menu':
+            game_state = main_menu.draw()
+            player.x = 64 * 2
+            player.y = window.height - 64 * 3
 
-        for enemy in player.get_room().enemies: ## Collision with enemies
-            if random.randint(0,500) == 1:
-                enemy.attack(player.get_room().enemies)
-            for ice_x in range(len(player.magic_sprites)):
-                ice = player.magic_sprites[ice_x]
-                if ice.z == enemy.z:
-                    if enemy.sprite().collided(ice.sprite):
-                        enemy.take_damage(1,[ice.x + ice.sprite.width/2, ice.y + ice.sprite.height/2],100)
-                        player.magic_sprites.pop(ice_x)
-            if enemy.z == player.z:
-                enemy.behaviour(player)
-                if player.sprite().collided(enemy.sprite()):
-                    player.take_damage(1,[enemy.x + enemy.sprite().width/2, enemy.y + enemy.sprite().height/2],100)
-                    enemy.take_damage(1,[player.x + player.sprite().width/2, player.y + player.sprite().height/2],100)
-            enemy.movement()
+            player.set_base_health(10)
+            player.set_health(3)
+            player.hud.update_values()
 
-        
-        for shard in player.get_room().shards:
-            if shard.collided(player.sprite()):
-                player.set_magic(shard.magic)
-                player.get_room().shards.remove(shard)
-                break
-        
-        player.movement(keyboard,config['controlls']) ## Movement 
+            player.hud.x = 10
+            player.hud.y = 10
+            player.hud.align()
+        ###############
 
-        ##
-        # bg.draw()
+        if game_state == 'Game':
+            while(True):
+                player.cast('',config['controlls'],keyboard) ## Casting a spell if needed
 
-        game_map_obj.draw(player,player.magic_sprites)
-        
-        player.draw_hud() ## Hud
-        if player.sprite().collided(ta.sprite()):
-            if ta.pixel_collision(player.sprite().rect, player.sprite().image):
-                print("A")
+                for enemy in player.get_room().enemies: ## Collision with enemies
+                    if random.randint(0,500) == 1:
+                        enemy.attack(player.get_room().enemies)
+                    for ice_x in range(len(player.magic_sprites)):
+                        ice = player.magic_sprites[ice_x]
+                        if ice.z == enemy.z:
+                            if enemy.sprite().collided(ice.sprite):
+                                enemy.take_damage(1,[ice.x + ice.sprite.width/2, ice.y + ice.sprite.height/2],100)
+                                player.magic_sprites.pop(ice_x)
+                    if enemy.z == player.z:
+                        # enemy.behaviour(player)
+                        if player.sprite().collided(enemy.sprite()):
+                            player.take_damage(1,[enemy.x + enemy.sprite().width/2, enemy.y + enemy.sprite().height/2],100)
+                            # enemy.take_damage(1,[player.x + player.sprite().width/2, player.y + player.sprite().height/2],100)
+                        for attack in enemy.attack_sprites:
+                            rect = pygame.Rect((attack.x,attack.y),(0,0))
+                            if player.pixel_collision(rect,attack.surface):
+                                pass
 
-        ##
-        # clock.tick(120) ## Framerate
-        window.update()
+                    enemy.movement()
 
+                
+                for shard in player.get_room().shards:
+                    if shard.collided(player.sprite()):
+                        player.set_magic(shard.magic)
+                        player.get_room().shards.remove(shard)
+                        break
+                
+                player.movement(keyboard,config['controlls']) ## Movement 
+                player.knockback() ## Applying knockback if needed
+
+                ##
+                game_map_obj.draw(player,player.magic_sprites)
+                player.hud.draw()
+
+                ##
+                # clock.tick(120) ## Framerate
+                if player.hp <= 0:
+                    game_state = 'Game Over'
+                    break
+                window.update()
+
+        if game_state == 'Game Over':
+            player.set_animation(player.name_to_index('death'))
+            player.sprite().last_time = int(round(time.time() * 1000))
+            duration = player.sprite().total_duration + window.time_elapsed()
+            while(duration > window.time_elapsed()):
+                window.set_background_color((0,0,0))
+                player.draw()
+                player.update()
+                window.update()
+            player.sprite().curr_frame = 0
+            game_state = 'Menu'
 game()

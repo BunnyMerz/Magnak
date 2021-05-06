@@ -7,6 +7,8 @@ from pit import pitagoras_class
 
 class LekroSpell():
     def __init__(self,lekros,window):
+        self.x = 0
+        self.y = 0
         self.sprite_obj = Sprite('assets/magic/thunder.png')
         self.lekros = lekros
         self.window = window
@@ -15,8 +17,9 @@ class LekroSpell():
         self.height = 0
 
         self.off_set = 0
+        self.surface, _ = self.rotate()
 
-        self.life_span = 1000 + self.window.time_elapsed()
+        self.life_span = 10000 + self.window.time_elapsed()
 
     def sprite(self):
         return self.sprite_obj
@@ -26,6 +29,8 @@ class LekroSpell():
             self.disapear()
             return
         surface,angle = self.rotate()
+        self.surface = surface
+
         x,y = self.lekros[0].x + self.lekros[0].sprite().width/2, self.lekros[0].y + self.lekros[0].sprite().height*3/4
 
         angle += 180
@@ -37,6 +42,8 @@ class LekroSpell():
         elif 180 <= angle < 270:
             x -= self.width
 
+        self.x, self.y = x,y
+
         self.window.get_screen().blit(surface, (x,y))
 
     
@@ -44,9 +51,15 @@ class LekroSpell():
         self.sprite().update()
 
     def rotate(self):
-        self.off_set += 3
+        self.off_set += 2
         delta_x = self.lekros[0].x - self.lekros[1].x
-        delta_y = self.lekros[1].y - self.lekros[0].y
+
+        lekro1_offset = (abs(self.lekros[1].sprite().curr_frame - self.lekros[1].sprite().total_frames/2) * -4) + 40
+        lekro1_y = self.lekros[1].y - lekro1_offset
+
+        lekro2_y = self.lekros[0].y
+
+        delta_y = (lekro1_y - lekro2_y)
 
         angle = degrees(atan2(delta_y, delta_x))
         hip = ((delta_x**2)+(delta_y)**2)**(1/2)
@@ -67,7 +80,7 @@ class LekroSpell():
         self.height = surface.get_rect().height
 
         return surface,angle
-
+    
     def disapear(self):
         for lekro in self.lekros:
             for x in range(len(lekro.attack_sprites)):

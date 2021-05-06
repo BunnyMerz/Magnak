@@ -26,7 +26,7 @@ class Player(): ## Não herda de spirte já que tem varios sprites dentro dele
         ## Infos e permissões
         self.x = 0
         self.y = 0
-        self.z = 3
+        self.z = 1
         self.map = game_map
         self.room = [0,0] 
 
@@ -43,6 +43,7 @@ class Player(): ## Não herda de spirte já que tem varios sprites dentro dele
         self.stun = None
         self.knoback_distance = [0,0]
         self.invunerable = 0
+        self.invunerable_base_time = 1200
         ##
         self.hud = Hud()
         self.hud.base_hp = self.base_hp
@@ -85,6 +86,8 @@ class Player(): ## Não herda de spirte já que tem varios sprites dentro dele
                 elif orientation == 'r':
                     self.set_animation(3)
 
+                self.update_all_animations_coords()
+
         elif self.cast_on_cooldown < self.window.time_elapsed():
             if keyboard.key_pressed(key_settings['magic']):
                 orientation = self.index_to_name(self.curr_animation)[-1]
@@ -110,7 +113,7 @@ class Player(): ## Não herda de spirte já que tem varios sprites dentro dele
 
         self.set_animation(8)
         self.all_animations[self.curr_animation].last_time = int(round(time.time() * 1000)) ## Resetar o ciclo da animação
-        self.invunerable = self.window.time_elapsed() + 20 ## Invulnerável por um tempo
+        self.invunerable = self.window.time_elapsed() + self.invunerable_base_time ## Invulnerável por um tempo
 
         try:
             knoback_distance = [(self.x + self.sprite().width/2) - damage_source[0],(self.y + self.sprite().height/2) - damage_source[1]] ## [xi - xo, yi - yo]
@@ -190,8 +193,8 @@ class Player(): ## Não herda de spirte já que tem varios sprites dentro dele
             return
             # self.hud.draw()  ## Hud precisa ter draw() após player para sobre por ele
         else:
+            self.update_all_animations_coords()
             sprite = self.all_animations[self.curr_animation]
-            sprite.x,sprite.y = self.x,self.y
             sprite.draw()
             # self.hud.draw() ## Hud precisa ter draw() após player para sobre por ele
     
@@ -303,7 +306,6 @@ class Player(): ## Não herda de spirte já que tem varios sprites dentro dele
         
     def pixel_collision(self, target_rect, target_surface):
         import unbounded_collision
-
         return unbounded_collision.UnboundedCollision.pixel_collision(self.sprite().rect, target_rect, self.cropped_frame(), target_surface)
 
     def collision_with_solids(self,solid_block):

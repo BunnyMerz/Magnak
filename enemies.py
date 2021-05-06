@@ -4,14 +4,21 @@ from pit import pitagoras
 from pit import pitagoras_class
 from entity import *
 from magic import LekroSpell
+from math import atan2
+from math import degrees
+from math import cos
+from math import sin
+from shards import *
 
 class BaseEnemy(Entity):
     def __init__(self, window, stats, room, image_files, frames, total_durations, initial_frames, animation_names=[], animation_tree=[],x=0,y=0,z=1):
         Entity.__init__(self, window, stats, room, image_files, frames, total_durations, initial_frames, animation_names, animation_tree,x,y,z)
-    
+
 class Lekro(BaseEnemy):
     def __init__(self, window, stats, room, image_files, frames, total_durations, initial_frames, animation_names=[], animation_tree=[],x=0,y=0,z=1):
         BaseEnemy.__init__(self, window, stats, room, image_files, frames, total_durations, initial_frames, animation_names,animation_tree,x,y,z)
+        self.base_hp = 3
+        self.hp = 3
         self.movement_frequency = 120 ## The higher, the less likely to move. 1 == 100% or 1/x%
         self.jump_distance = {'min':20,'max':100}
         self.vector = [0,0]
@@ -41,7 +48,14 @@ class Lekro(BaseEnemy):
             self.update()
     
     def death(self):
-        pass
+        for attack in self.attack_sprites:
+            attack.disapear()
+        for x in range(len(self.room.enemies)):
+            if self.room.enemies[x] == self:
+                self.room.enemies.pop(x)
+                break
+        self.room.shards.append(Shard(3,self.x,self.y,self.z))
+
 
     def draw(self):
         for attack in self.attack_sprites:
@@ -67,6 +81,22 @@ class Lekro(BaseEnemy):
             if self.jump_distance['max'] < abs(y_axis):
                 y_axis = self.jump_distance['max'] * ((y_axis < 0) * -2 + 1)
 
+        
+            for enemy in self.room.enemies:
+                distance = pitagoras([self.x,self.y],[enemy.x,enemy.y])
+                if 0 < distance < 50:
+                    alpha_lekros = sin((self.y - enemy.y) / distance)
+                    alpha_vector = sin(y_axis / distance)
+                    length = x_axis/cos(alpha_vector)
+                    x_axis = length * cos(alpha_vector + alpha_lekros)
+                    y_axis = length * sin(alpha_vector + alpha_lekros)
+                    break
+
+            if self.jump_distance['max'] < abs(x_axis):
+                x_axis = self.jump_distance['max'] * ((x_axis < 0) * -2 + 1)
+            if self.jump_distance['max'] < abs(y_axis):
+                y_axis = self.jump_distance['max'] * ((y_axis < 0) * -2 + 1)
+
             self.next_vector = [x_axis, y_axis]
     
     def attack(self,list_of_lekros):
@@ -80,5 +110,6 @@ class Lekro(BaseEnemy):
                 return
             choice = random.randint(0,len(list_of_lekros) - 1)
 
-        self.attack_sprites.append(LekroSpell([self,list_of_lekros[choice]],self.window))
-        list_of_lekros[choice].attack_sprites.append(LekroSpell([self,list_of_lekros[choice]],self.window))
+        attack = LekroSpell([self,list_of_lekros[choice]],self.window)
+        self.attack_sprites.append(attack)
+        list_of_lekros[choice].attack_sprites.append(attack)

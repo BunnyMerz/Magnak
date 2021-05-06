@@ -47,7 +47,7 @@ class Room():
 
             for objects in dinamic_objects_this_floor:
                 obj_base = objects.base()
-                indexes.append(int((obj_base[1]/64 + self.y) * self.width + (obj_base[0]/64 + self.x)))
+                indexes.append(int(int(obj_base[1]/64 + self.y) * self.width + int(obj_base[0]/64 + self.x)))
 
             ids = [x for x in range(len(indexes))]
             indexes,_,dinamic_objects_this_floor = [ list(tuple) for tuple in zip(*sorted(zip(indexes,ids,dinamic_objects_this_floor))) ]

@@ -6,7 +6,7 @@ class Menu():
     def __init__(self, bg, options, window, side_space=5, line_space=10, x=0, y=0):
         self.x = x
         self.y = y
-        self.bg = pygame.image.load(bg)
+        self.bg = bg
         self.options = {}
         self.option_index = [0]
         self.difficulty = 1
@@ -56,9 +56,9 @@ class Menu():
                             self.hover(page[x],self.width[z])
                             if mouse.is_button_pressed(1) and not(holding_left_mouse):
                                 if self.change_index(index,x) == 'new_game':
-                                    return 1, self.difficulty
+                                    return 'Game'
                                 elif self.change_index(index,x) == 'contiune':
-                                    return 2, self.difficulty
+                                    return 'Game'
                                 holding_left_mouse = True
                                 break ## Evitar que o for continue em cima de uma lista nova, já que change_index() mudará
                             elif not(mouse.is_button_pressed(1)):
@@ -77,15 +77,14 @@ class Menu():
         # button = qual página, qual botão dessa página
         # [Qual opção, qual página], opção começa de 0, página de 1
         # {(0,0):[]} onde (x,y) se refere á algum outro botão e [] são os botões daquela página
-        print(button)
         if button == [0,0]: ## Continue
             return 'continue'
 
         if button == [1,0]: ## New Game
             return 'new_game'
         
-        # if button == [3,0]: ## Leave
-        #     sys.exit(1)
+        if button == [3,0]: ## Leave
+            sys.exit(1)
 
     def get_width(self,index):
         x = 0

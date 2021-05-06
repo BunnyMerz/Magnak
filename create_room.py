@@ -30,12 +30,10 @@ def create_room(txt_name,x=0,y=0):
                 floor_row = []
                 x_off = x
                 for col in row.strip('\n').split(' '):
-                    tile = Tile(col,z=z)
+                    tile = Tile(col,x=x_off,y=y_off,z=z)
                     if tile.solid:
                         floor_solids.append(tile)
                     floor_row.append(tile)
-                    tile.x = x_off
-                    tile.y = y_off
                     x_off += tile_size
                 floor.append(floor_row)
                 y_off += tile_size

@@ -23,6 +23,7 @@ tiles = {
     'B':'gate2.png',
     'C':'gate3.png',
     'D':'gate4.png',
+    'E':'gate.png',
     'S':'solid.png',
     '#':'grid.png',
     "^0":'stairs-up-0.png',
@@ -47,5 +48,8 @@ class Tile(Sprite):
             Sprite.__init__(self, tile + tiles[tile_type])
         self.x = x
         self.y = y
+        if tile_type in ['E']:
+            self.y -= 64
+            self.x -= 64
         self.z = z
         self.type = tile_type
