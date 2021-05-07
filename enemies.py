@@ -9,6 +9,7 @@ from math import degrees
 from math import cos
 from math import sin
 from shards import *
+from heart import *
 
 class BaseEnemy(Entity):
     def __init__(self, window, stats, room, image_files, frames, total_durations, initial_frames, animation_names=[], animation_tree=[],x=0,y=0,z=1):
@@ -55,6 +56,10 @@ class Lekro(BaseEnemy):
                 self.room.enemies.pop(x)
                 break
         self.room.shards.append(Shard(3,self.x,self.y,self.z))
+        chance_of_heart = random.randint(1,1)
+        if chance_of_heart == 1:
+            amount = random.randint(1,3)
+            self.room.shards.append(Heart(amount,z=self.z,x=self.x,y=self.y))
 
 
     def draw(self):

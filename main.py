@@ -10,23 +10,10 @@ from game_map import *
 from create_room import *
 import random
 import pygame
-from isur import *
 from magic import *
 from menu import *
-
-# animation_tree = {
-#     'damage':{
-#         [ 1, 0]:0,
-#         [ 1,-1]:0,
-#         [ 0,-1]:0,
-#         [-1,-1]:0,
-#         [-1, 0]:0,
-#         [-1, 1]:0,
-#         [ 0, 1]:0,
-#         [ 1, 1]:0,
-#         'default':0
-#         }
-#     }
+from heart import *
+from unbounded_collision import *
 
 assets = {
     "hud":'assets/hud/',
@@ -49,21 +36,18 @@ config= {
 
 def game():
 
-    # window = Window(864, 576)
     window = Window(1024,600)
     keyboard = window.get_keyboard()
     clock = pygame.time.Clock()
-
-    ## Background diminuido para a janela não ficar muito grande
-    # bg = Sprite( assets["menu"] + 'fundo_menu_magnak-0.9.jpg')
 
     room1 = create_room('room1')
     room2 = create_room('room2')
     room3 = create_room('room3')
     room4 = create_room('room4')
+    room5 = create_room('room5')
     map_of_rooms = [
-        [room1,room2],
-        [room3,room4]
+        [room1,room2,0],
+        [room3,room4,room5]
         ]
     game_map_obj = GameMap(map_of_rooms)
 
@@ -84,30 +68,30 @@ def game():
         "damage_a",'death'
         ]
 
-    animation_tree = {
-        'damage':{
-            ( 1, 0):0,
-            ( 1,-1):0,
-            ( 0,-1):0,
-            (-1,-1):0,
-            (-1, 0):0,
-            (-1, 1):0,
-            ( 0, 1):0,
-            ( 1, 1):0,
-            'default':"damage_a"
-            },
-        'base':{
-            ( 1, 0):0,
-            ( 1,-1):0,
-            ( 0,-1):0,
-            (-1,-1):0,
-            (-1, 0):0,
-            (-1, 1):0,
-            ( 0, 1):0,
-            ( 1, 1):0,
-            'default':0
-            }
-    }
+    # animation_tree = {
+    #     'damage':{
+    #         ( 1, 0):0,
+    #         ( 1,-1):0,
+    #         ( 0,-1):0,
+    #         (-1,-1):0,
+    #         (-1, 0):0,
+    #         (-1, 1):0,
+    #         ( 0, 1):0,
+    #         ( 1, 1):0,
+    #         'default':"damage_a"
+    #         },
+    #     'base':{
+    #         ( 1, 0):0,
+    #         ( 1,-1):0,
+    #         ( 0,-1):0,
+    #         (-1,-1):0,
+    #         (-1, 0):0,
+    #         (-1, 1):0,
+    #         ( 0, 1):0,
+    #         ( 1, 1):0,
+    #         'default':0
+    #         }
+    # }
     #Player([Animações],[frames],[durations],[frames_iniciais],[Names]=[])
     player = Player(window,game_map_obj,player_animations,[3,3,3,3,4,4,3,3,3,3],[400,400,400,400,900,900,2000,2000,525,2000],[1,1,1,1,0,0,0,0,0,0],player_animations_names)
     player.x = 64 * 2
@@ -121,13 +105,6 @@ def game():
     player.hud.y = 10
     player.hud.align()
 
-
-    #Variaveis das habilidades
-    essence_fire = Shard(1,300,300)
-    essence_ice = Shard(2,400,400)
-    essence_lightning = Shard(3,500,200)
-
-    shards_sprites = [essence_fire,essence_ice,essence_lightning]
 
     lekro_tree = {
         'damage':{
@@ -156,18 +133,27 @@ def game():
 
     an_names = ['base','damage']
     animations_lek = ['assets/enemies/Lekro-jump.png','assets/enemies/Lekro-damage.png']
-    enemies = []
+    enemies1 = []
     for _ in range(2):
         # window, stats, room, image_files, frames, total_durations, initial_frames, animation_names,x,y,z
-        enemy = Lekro(window,{'base_hp':10},map_of_rooms[0][0],animations_lek,frames=[20,6],total_durations=[600,400],initial_frames=[0,0],animation_names=an_names,animation_tree=lekro_tree)
+        enemy = Lekro(window,{'base_hp':10},map_of_rooms[0][1],animations_lek,frames=[20,6],total_durations=[600,400],initial_frames=[0,0],animation_names=an_names,animation_tree=lekro_tree)
         enemy.x = random.randint(200,500)
         enemy.y = random.randint(100,500)
         enemy.z = 1
         enemy.update_all_animations_coords()
-        enemies.append(enemy)
+        enemies1.append(enemy)
 
-    map_of_rooms[0][0].enemies = enemies
-    map_of_rooms[1][0].shards = shards_sprites
+
+    enemies2 = []
+    for _ in range(5):
+        # window, stats, room, image_files, frames, total_durations, initial_frames, animation_names,x,y,z
+        enemy = Lekro(window,{'base_hp':10},map_of_rooms[1][2],animations_lek,frames=[20,6],total_durations=[600,400],initial_frames=[0,0],animation_names=an_names,animation_tree=lekro_tree)
+        enemy.x = random.randint(200,500)
+        enemy.y = random.randint(100,500)
+        enemy.z = 3
+        enemy.update_all_animations_coords()
+        enemies2.append(enemy)
+
 
 
     menu_dir = "assets/menu/"
@@ -191,59 +177,81 @@ def game():
         ###############
         if game_state == 'Menu':
             game_state = main_menu.draw()
+        ###############
+
+        if game_state == 'Game':
             player.x = 64 * 2
             player.y = window.height - 64 * 3
 
             player.set_base_health(10)
             player.set_health(3)
             player.hud.update_values()
+            player.room = [0,0]
 
             player.hud.x = 10
             player.hud.y = 10
             player.hud.align()
-        ###############
+            
+            essence_fire = Shard(1,300,300)
+            essence_ice = Shard(2,400,400) 
+            essence_lightning = Shard(3,500,200)
 
-        if game_state == 'Game':
+            shards_sprites = [essence_fire,essence_ice,essence_lightning]
+            
+            map_of_rooms[0][1].enemies = enemies1.copy()
+            map_of_rooms[1][2].enemies = enemies2.copy()
+            map_of_rooms[1][0].shards = shards_sprites.copy()
+
             while(True):
                 player.cast('',config['controlls'],keyboard) ## Casting a spell if needed
 
                 for enemy in player.get_room().enemies: ## Collision with enemies
                     if random.randint(0,500) == 1:
                         enemy.attack(player.get_room().enemies)
-                    for ice_x in range(len(player.magic_sprites)):
-                        ice = player.magic_sprites[ice_x]
-                        if ice.z == enemy.z:
-                            if enemy.sprite().collided(ice.sprite):
-                                enemy.take_damage(1,[ice.x + ice.sprite.width/2, ice.y + ice.sprite.height/2],100)
-                                player.magic_sprites.pop(ice_x)
+                    for spells in range(len(player.magic_sprites)):
+                        spell = player.magic_sprites[spells]
+                        if spell.z == enemy.z:
+                            if enemy.sprite().collided(spell.sprite()):
+                                # if UnboundedCollision.entity_pixel_colision(enemy,spell):
+                                enemy.take_damage(spell.get_damage(),[spell.x + spell.sprite().width/2, spell.y + spell.sprite().height/2],100 * spell.knockback_multiplier)
+                                player.magic_sprites.pop(spells)
+                                break
                     if enemy.z == player.z:
-                        # enemy.behaviour(player)
+                        enemy.behaviour(player)
                         if player.sprite().collided(enemy.sprite()):
                             player.take_damage(1,[enemy.x + enemy.sprite().width/2, enemy.y + enemy.sprite().height/2],100)
                             # enemy.take_damage(1,[player.x + player.sprite().width/2, player.y + player.sprite().height/2],100)
                         for attack in enemy.attack_sprites:
                             rect = pygame.Rect((attack.x,attack.y),(0,0))
                             if player.pixel_collision(rect,attack.surface):
-                                pass
+                                lekro = attack.lekros[0]
+                                player.take_damage(1,[enemy.x + lekro.sprite().width/2, lekro.y + lekro.sprite().height/2],100)
+                            
 
                     enemy.movement()
 
                 
                 for shard in player.get_room().shards:
                     if shard.collided(player.sprite()):
-                        player.set_magic(shard.magic)
-                        player.get_room().shards.remove(shard)
-                        break
+                        if isinstance(shard,Shard):
+                            player.set_magic(shard.magic)
+                            player.get_room().shards.remove(shard)
+                            break
+                        elif isinstance(shard,Heart):
+                            player.change_health(shard.amount)
+                            player.get_room().shards.remove(shard)
+                            break
                 
                 player.movement(keyboard,config['controlls']) ## Movement 
                 player.knockback() ## Applying knockback if needed
 
                 ##
                 game_map_obj.draw(player,player.magic_sprites)
+
                 player.hud.draw()
 
                 ##
-                # clock.tick(120) ## Framerate
+                clock.tick(120) ## Framerate
                 if player.hp <= 0:
                     game_state = 'Game Over'
                     break

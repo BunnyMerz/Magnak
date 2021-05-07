@@ -87,3 +87,122 @@ class LekroSpell():
                 if lekro.attack_sprites[x] == self:
                     lekro.attack_sprites.pop(x)
                     break
+
+
+directions = {
+    'x':{
+        0:'',
+        1:'r',
+        -1:'l'
+    },
+    'y':{
+        0:'',
+        -1:'u',
+        1:'d'
+    }
+}
+
+class Isur():
+    def __init__(self, window, direction,x,y,z, damage=1, knockback_multiplier=1):
+        direction_name = directions['x'][direction[0]] + directions['y'][direction[1]]
+        self.sprite_class = Sprite('assets/magic/ice_' + direction_name+".png")
+        self.damage = damage
+        self.knockback_multiplier = knockback_multiplier
+        self.x = x
+        self.y = y
+        self.z = z
+        self.vector = direction
+        self.window = window
+        self.speed = 400
+    
+    def draw(self):
+        self.x += self.vector[0] * self.window.delta_time() * self.speed
+        self.y += self.vector[1] * self.window.delta_time() * self.speed
+        self.sprite().x = self.x
+        self.sprite().y = self.y
+        self.sprite().draw()
+    
+    def base(self):
+        return [self.x + self.sprite().width/2, self.y + self.sprite().height]
+
+    def get_damage(self):
+        return self.damage
+    
+    def sprite(self):
+        return self.sprite_class
+
+class StrongIsur():
+    def __init__(self,x,y,z):
+        self.visual_sprite = Sprite('assets/magic/issur_strong.png',8)
+        self.sprite_class = Sprite('assets/magic/issur_strong_hitbox.png',8) ## hitbox
+        self.x = x
+        self.y = y
+        self.z = z
+        self.set_position(x,y)
+        self.visual_sprite.set_total_duration(1000)
+        self.sprite().set_total_duration(1000)
+        self.visual_sprite.loop = False
+        self.sprite().loop = False
+        self.damage = 3
+        self.knockback_multiplier = 1
+
+    def draw(self):
+        self.visual_sprite.update()
+        self.sprite().update()
+        self.visual_sprite.draw()
+    
+    def set_position(self,x,y):
+        self.visual_sprite.set_position(x,y)
+        self.sprite().set_position(x,y)
+        self.x = x
+        self.y = y
+    
+    def base(self):
+        return [self.x + self.visual_sprite.width/2, self.y + self.visual_sprite.height]
+    
+    def get_damage(self):
+        return self.damage
+
+    def sprite(self):
+        return self.sprite_class
+
+class Liyu():
+    def __init__(self,window, direction,x,y,z, damage=1, knockback_multiplier=1):
+        self.sprite_class = Sprite('assets/magic/Liyu.png',4)
+        self.damage = damage
+        self.knockback_multiplier = knockback_multiplier
+        self.x = x
+        self.y = y
+        self.z = z
+        self.vector = direction
+        self.window = window
+        self.speed = 400
+        
+        self.angle = degrees(atan2(self.vector[1] * -1, self.vector[0]))
+        self.sprite().set_total_duration(1400)
+        self.sprite().initial_frame = 0
+        self.sprite().loop = False
+    
+    def draw(self):
+        self.x += self.vector[0] * self.window.delta_time() * self.speed
+        self.y += self.vector[1] * self.window.delta_time() * self.speed
+
+        surface = pygame.Surface((self.sprite().width, self.sprite().height),pygame.SRCALPHA, 32)
+        surface.convert_alpha()
+        surface.blit(self.sprite().image,(self.sprite().width * self.sprite().curr_frame * -1,0))
+        surface = pygame.transform.rotate(surface, self.angle)
+
+        
+        self.sprite().x = self.x
+        self.sprite().y = self.y
+        self.sprite().update()
+        self.window.get_screen().blit(surface,(self.x,self.y))
+    
+    def base(self):
+        return [self.x + self.sprite().width/2, self.y + self.sprite().height]
+    
+    def get_damage(self):
+        return self.damage * (self.sprite().curr_frame+1)**(1/2)
+    
+    def sprite(self):
+        return self.sprite_class

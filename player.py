@@ -2,7 +2,10 @@ from PPlay.sprite import *
 import pygame
 from hud import *
 import sys
-from isur import *
+from magic import *
+
+spells = [Liyu,None,Isur,None]
+strong_spells = [None,None,StrongIsur,None]
 
 class Player(): ## Não herda de spirte já que tem varios sprites dentro dele
     def __init__(self, window, game_map, image_files, frames, total_durations, initial_frames, animation_names=[]):
@@ -18,7 +21,7 @@ class Player(): ## Não herda de spirte já que tem varios sprites dentro dele
         ## Ingame status
         self.base_hp = 20
         self.hp = self.base_hp
-        self.magic = 0 ## Magia que ele está usando no momento. Os números ainda precisam ser definidos
+        self.magic = 0 ## Magia que ele está usando no momento.
         self.base_speed = 170
         self.speed = self.base_speed
         self.run = 0.8 ## porcentagem a acrescentar á velocidade. (base_speed + base_speed * run)
@@ -73,9 +76,26 @@ class Player(): ## Não herda de spirte já que tem varios sprites dentro dele
             self.update()
             sprite = self.all_animations[self.curr_animation]
             if sprite.get_curr_frame() == sprite.initial_frame:
-                self.magic_sprites.append(Isur(self.window,self.last_oriented.copy(),self.x + self.sprite().width/2,self.y + self.sprite().width/2,self.z))
-                self.magic_sprites[-1].y -= self.magic_sprites[-1].sprite.height/2
-                self.magic_sprites[-1].x -= self.magic_sprites[-1].sprite.width/2
+                if self.index_to_name(self.casting)[:4] == 'weak':
+                    try:
+                        self.magic_sprites.append(spells[self.magic](self.window,self.last_oriented.copy(),self.x + self.sprite().width/2,self.y + self.sprite().width/2,self.z))
+                        self.magic_sprites[-1].set_position(
+                            self.magic_sprites[-1].x - self.magic_sprites[-1].sprite.width/2,
+                            self.magic_sprites[-1].y - self.magic_sprites[-1].sprite.height/2
+                            )
+                    except:
+                        pass
+                else:
+                    try:
+                        if self.magic == 2:
+                            self.magic_sprites.append(strong_spells[self.magic](self.x,self.y,self.z))
+                            self.magic_sprites[-1].set_position(
+                                self.magic_sprites[-1].x - self.magic_sprites[-1].sprite().width*5/7 + self.last_oriented[0] * 50,
+                                self.magic_sprites[-1].y - self.magic_sprites[-1].sprite().height + self.sprite().height + self.last_oriented[1] * 50
+                                )
+                    except:
+                        pass
+                    self.set_magic(0)
                 self.casting = 0
                 self.can_move = True
                 self.cast_on_cooldown = self.window.time_elapsed() + self.cast_cooldown
@@ -230,7 +250,10 @@ class Player(): ## Não herda de spirte já que tem varios sprites dentro dele
         self.hud.hp = self.hp
 
     def change_health(self,delta_amount):
-        self.hp += delta_amount
+        if self.hp + delta_amount > self.base_hp:
+            self.hp = self.base_hp
+        else:
+            self.hp += delta_amount
         self.hud.hp = self.hp
     
     def set_base_health(self,new_amount):
@@ -261,7 +284,8 @@ class Player(): ## Não herda de spirte já que tem varios sprites dentro dele
     def cropped_frame(self):
         sprite = self.sprite()
         crop_rect = pygame.Rect((sprite.curr_frame * sprite.width,0),(sprite.width,sprite.height))
-        surface = pygame.Surface((sprite.width,sprite.height))
+        surface = pygame.Surface((sprite.width,sprite.height), pygame.SRCALPHA, 32)
+        surface.convert_alpha()
         surface.blit(sprite.image,crop_rect)
         return surface
 
@@ -283,7 +307,8 @@ class Player(): ## Não herda de spirte já que tem varios sprites dentro dele
         for block in self.get_room().get_surrodings(int(x/64),int(y/64) % self.get_room().width,self.z):
             if self.collision_with_solids(block):
                 self.correct_coord(block)
-        self.change_of_room()
+        if self.change_of_room():
+            self.magic_sprites = []
         self.x += amount * self.window.delta_time()
         
     def move_y(self,amount):
@@ -291,7 +316,8 @@ class Player(): ## Não herda de spirte já que tem varios sprites dentro dele
         for block in self.get_room().get_surrodings(int(self.x/64),int(self.y/64) % self.get_room().width,self.z):
             if self.collision_with_solids(block):
                 self.correct_coord(block)
-        self.change_of_room()
+        if self.change_of_room():
+            self.magic_sprites = []
         self.y += amount * self.window.delta_time()
     
     def change_height(self):
